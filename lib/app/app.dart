@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_najwafth_driver/app/app_router.dart';
 import 'package:flutter_najwafth_driver/core/core.dart';
-import 'package:flutter_najwafth_driver/features/splash/presentation/splash_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final class NajwafthDriverApp extends ConsumerWidget {
@@ -12,11 +12,12 @@ final class NajwafthDriverApp extends ConsumerWidget {
 
     return MaterialApp(
       title: config.appName,
-      debugShowCheckedModeBanner: config.isDevelopment,
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ref.watch(themeModeControllerProvider),
-      home: const SplashPage(),
+      themeMode: ThemeMode.light,
+      initialRoute: AppRoutes.splash,
+      onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }
 }
