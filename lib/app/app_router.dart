@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/complete_profile_page.dart';
-import 'package:flutter_najwafth_driver/features/auth/presentation/pages/driver_home_page.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/otp_verification_page.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/reset_password_page.dart';
@@ -8,7 +7,15 @@ import 'package:flutter_najwafth_driver/features/auth/presentation/pages/sign_in
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:flutter_najwafth_driver/features/onboarding/presentation/onboarding_page.dart';
 import 'package:flutter_najwafth_driver/features/splash/presentation/splash_page.dart';
-
+import 'package:flutter_najwafth_driver/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:flutter_najwafth_driver/features/orders/presentation/pages/order_details_page.dart';
+import 'package:flutter_najwafth_driver/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:flutter_najwafth_driver/features/profile/presentation/pages/change_password_page.dart';
+import 'package:flutter_najwafth_driver/features/profile/presentation/pages/about_app_page.dart';
+import 'package:flutter_najwafth_driver/features/profile/presentation/pages/privacy_policy_page.dart';
+import 'package:flutter_najwafth_driver/features/profile/presentation/pages/terms_conditions_page.dart';
+import 'package:flutter_najwafth_driver/features/profile/presentation/pages/choose_language_page.dart';
+import 'package:flutter_najwafth_driver/features/notifications/presentation/pages/notifications_page.dart';
 final class AppRoutes {
   const AppRoutes._();
 
@@ -20,7 +27,16 @@ final class AppRoutes {
   static const String otp = '/otp';
   static const String resetPassword = '/reset-password';
   static const String completeProfile = '/complete-profile';
-  static const String home = '/home';
+  static const String home = '/home'; // Keeping original for backward compat if needed
+  static const String dashboard = '/dashboard';
+  static const String orderDetails = '/order-details';
+  static const String editProfile = '/edit-profile';
+  static const String changePassword = '/change-password';
+  static const String aboutApp = '/about-app';
+  static const String privacyPolicy = '/privacy-policy';
+  static const String termsConditions = '/terms-conditions';
+  static const String chooseLanguage = '/choose-language';
+  static const String notifications = '/notifications';
 }
 
 final class SignInRouteArgs {
@@ -37,9 +53,13 @@ final class OtpRouteArgs {
 }
 
 final class ResetPasswordRouteArgs {
-  const ResetPasswordRouteArgs({required this.email});
+  const ResetPasswordRouteArgs({
+    required this.email,
+    required this.resetToken,
+  });
 
   final String email;
+  final String resetToken;
 }
 
 final class CompleteProfileRouteArgs {
@@ -83,7 +103,10 @@ final class AppRouter {
         return _pageRoute(OtpVerificationPage(email: args.email), settings);
       case AppRoutes.resetPassword:
         final args = settings.arguments as ResetPasswordRouteArgs;
-        return _pageRoute(ResetPasswordPage(email: args.email), settings);
+        return _pageRoute(
+          ResetPasswordPage(email: args.email, resetToken: args.resetToken),
+          settings,
+        );
       case AppRoutes.completeProfile:
         final args = settings.arguments as CompleteProfileRouteArgs?;
         return _pageRoute(
@@ -96,7 +119,25 @@ final class AppRouter {
           settings,
         );
       case AppRoutes.home:
-        return _pageRoute(const DriverHomePage(), settings);
+        return _pageRoute(const DashboardPage(), settings);
+      case AppRoutes.dashboard:
+        return _pageRoute(const DashboardPage(), settings);
+      case AppRoutes.orderDetails:
+        return _pageRoute(const OrderDetailsPage(), settings);
+      case AppRoutes.editProfile:
+        return _pageRoute(const EditProfilePage(), settings);
+      case AppRoutes.changePassword:
+        return _pageRoute(const ChangePasswordPage(), settings);
+      case AppRoutes.aboutApp:
+        return _pageRoute(const AboutAppPage(), settings);
+      case AppRoutes.privacyPolicy:
+        return _pageRoute(const PrivacyPolicyPage(), settings);
+      case AppRoutes.termsConditions:
+        return _pageRoute(const TermsConditionsPage(), settings);
+      case AppRoutes.chooseLanguage:
+        return _pageRoute(const ChooseLanguagePage(), settings);
+      case AppRoutes.notifications:
+        return _pageRoute(const NotificationsPage(), settings);
       default:
         return _pageRoute(const SplashPage(), settings);
     }

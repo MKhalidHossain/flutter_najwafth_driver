@@ -25,10 +25,9 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
   @override
   void initState() {
     super.initState();
-    final session = ref.read(appSessionControllerProvider);
-    _nameController = TextEditingController(text: session.userName);
-    _emailController = TextEditingController(text: session.email);
-    _phoneController = TextEditingController(text: session.phoneNumber);
+    _nameController = TextEditingController();
+    _emailController = TextEditingController();
+    _phoneController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
   }
@@ -43,61 +42,38 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
     super.dispose();
   }
 
-  String? _validatePhone(String? value) {
-    final requiredMessage = Validators.required(value, label: 'Phone number');
-    if (requiredMessage != null) {
-      return requiredMessage;
-    }
-
-    final digitsOnly = value!.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digitsOnly.length < 7) {
-      return 'Enter a valid phone number.';
-    }
-
-    return null;
-  }
-
   String? _validateConfirmPassword(String? value) {
-    final passwordError = Validators.minLength(
-      value,
-      6,
-      label: 'Confirm password',
-    );
-    if (passwordError != null) {
-      return passwordError;
-    }
+    final passwordError =
+        Validators.minLength(value, 6, label: 'Confirm password');
+    if (passwordError != null) return passwordError;
 
     if (value!.trim() != _passwordController.text.trim()) {
       return 'Passwords do not match.';
     }
-
     return null;
   }
 
   Future<void> _submit() async {
     final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) {
-      return;
-    }
+    if (!isValid) return;
 
-    await ref
-        .read(appSessionControllerProvider.notifier)
-        .saveAccountIdentity(
-          userName: _nameController.text.trim(),
+    await ref.read(appSessionControllerProvider.notifier).signUp(
+          fullName: _nameController.text.trim(),
           email: _emailController.text.trim(),
-          phoneNumber: _phoneController.text.trim(),
+          phone: _phoneController.text.trim(),
+          password: _passwordController.text,
+          confirmPassword: _confirmPasswordController.text,
         );
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
+    final session = ref.read(appSessionControllerProvider);
     Navigator.of(context).pushNamed(
       AppRoutes.completeProfile,
       arguments: CompleteProfileRouteArgs(
-        prefilledName: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        phoneNumber: _phoneController.text.trim(),
+        prefilledName: session.userName,
+        email: session.email,
+        phoneNumber: session.phoneNumber,
         shouldReturnToSignIn: true,
       ),
     );
@@ -105,6 +81,9 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading =
+        ref.watch(appSessionControllerProvider.select((s) => s.isLoading));
+
     return DriverScaffold(
       child: Form(
         key: _formKey,
@@ -115,7 +94,7 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
             const DriverBrandHeader(width: 240),
             const SizedBox(height: 24),
             const DriverIntro(
-              title: 'Let’s Get Started!',
+              title: "Let's Get Started!",
               subtitle: 'Create an account',
               centered: true,
             ),
@@ -123,7 +102,7 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
             DriverTextField(
               controller: _nameController,
               label: 'User Name',
-              hintText: 'Enter your First Name',
+              hintText: 'Enter your Full Name',
               prefixIcon: Icons.person_outline_rounded,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.name],
@@ -149,7 +128,8 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
               keyboardType: TextInputType.phone,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.telephoneNumber],
-              validator: _validatePhone,
+              validator: (value) =>
+                  Validators.required(value, label: 'Phone number'),
             ),
             const SizedBox(height: 18),
             DriverTextField(
@@ -196,7 +176,11 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
               ),
             ),
             const SizedBox(height: 24),
-            DriverPrimaryButton(label: 'Sign up', onPressed: _submit),
+            DriverPrimaryButton(
+              label: 'Sign up',
+              onPressed: isLoading ? null : _submit,
+              isLoading: isLoading,
+            ),
             const SizedBox(height: 24),
             Wrap(
               alignment: WrapAlignment.center,

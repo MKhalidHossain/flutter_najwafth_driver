@@ -4,9 +4,14 @@ import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/widgets/auth_ui.dart';
 
 final class ResetPasswordPage extends StatefulWidget {
-  const ResetPasswordPage({required this.email, super.key});
+  const ResetPasswordPage({
+    required this.email,
+    required this.resetToken,
+    super.key,
+  });
 
   final String email;
+  final String resetToken;
 
   @override
   State<ResetPasswordPage> createState() => _ResetPasswordPageState();
@@ -35,22 +40,17 @@ final class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
   String? _validateConfirmPassword(String? value) {
     final error = Validators.minLength(value, 6, label: 'Confirm password');
-    if (error != null) {
-      return error;
-    }
+    if (error != null) return error;
 
     if (value!.trim() != _newPasswordController.text.trim()) {
       return 'Passwords do not match.';
     }
-
     return null;
   }
 
   void _submit() {
     final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) {
-      return;
-    }
+    if (!isValid) return;
 
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.signIn,

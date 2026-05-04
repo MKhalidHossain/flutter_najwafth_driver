@@ -220,10 +220,12 @@ final class DriverPrimaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     super.key,
+    this.isLoading = false,
   });
 
   final String label;
   final VoidCallback? onPressed;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -233,15 +235,24 @@ final class DriverPrimaryButton extends StatelessWidget {
       width: double.infinity,
       height: compact ? 56 : 60,
       child: ElevatedButton(
-        onPressed: onPressed,
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: compact ? 16 : 17,
-          ),
-        ),
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Text(
+                label,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: compact ? 16 : 17,
+                ),
+              ),
       ),
     );
   }

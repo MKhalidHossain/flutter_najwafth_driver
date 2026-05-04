@@ -28,9 +28,7 @@ final class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   void _submit() {
     final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) {
-      return;
-    }
+    if (!isValid) return;
 
     Navigator.of(context).pushNamed(
       AppRoutes.otp,

@@ -25,6 +25,7 @@ final class AppSessionState {
     this.driverId,
     this.entrepreneurStatus,
     this.vehiclePlateNumber,
+    this.isLoading = false,
   });
 
   static const _sentinel = Object();
@@ -42,6 +43,7 @@ final class AppSessionState {
   final String? vehiclePlateNumber;
   final DriverVehicleType vehicleType;
   final DriverAvatarPreset avatarPreset;
+  final bool isLoading;
 
   AppSessionState copyWith({
     bool? onboardingCompleted,
@@ -57,6 +59,7 @@ final class AppSessionState {
     Object? vehiclePlateNumber = _sentinel,
     DriverVehicleType? vehicleType,
     DriverAvatarPreset? avatarPreset,
+    bool? isLoading,
   }) {
     return AppSessionState(
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
@@ -80,6 +83,7 @@ final class AppSessionState {
           : vehiclePlateNumber as String?,
       vehicleType: vehicleType ?? this.vehicleType,
       avatarPreset: avatarPreset ?? this.avatarPreset,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 }
@@ -125,56 +129,61 @@ final class AppSessionController extends Notifier<AppSessionState> {
     await ref.read(keyValueStorageProvider).writeBool(_onboardingKey, true);
   }
 
-  Future<void> saveAccountIdentity({
-    required String userName,
-    required String email,
-    required String phoneNumber,
-  }) async {
-    final trimmedName = userName.trim();
-    final trimmedEmail = email.trim();
-    final trimmedPhone = phoneNumber.trim();
-
-    state = state.copyWith(
-      userName: trimmedName,
-      email: trimmedEmail,
-      phoneNumber: trimmedPhone,
-    );
-
-    final storage = ref.read(keyValueStorageProvider);
-    await storage.writeString(_nameKey, trimmedName);
-    await storage.writeString(_emailKey, trimmedEmail);
-    await storage.writeString(_phoneKey, trimmedPhone);
-  }
-
   Future<void> signIn({
     required String email,
+    required String password,
     required bool rememberMe,
-    String? userName,
   }) async {
-    final trimmedEmail = email.trim();
-    final resolvedName = userName?.trim().isNotEmpty == true
-        ? userName!.trim()
-        : state.userName ?? _nameFromEmail(trimmedEmail);
+    state = state.copyWith(isLoading: true);
+    await Future.delayed(const Duration(milliseconds: 800));
 
     state = state.copyWith(
       isSignedIn: true,
       rememberMe: rememberMe,
-      rememberedEmail: rememberMe ? trimmedEmail : null,
-      email: trimmedEmail,
-      userName: resolvedName,
+      rememberedEmail: rememberMe ? email : null,
+      email: email,
+      userName: 'Driver User',
+      phoneNumber: '+1 234 567 890',
+      isLoading: false,
     );
 
     final storage = ref.read(keyValueStorageProvider);
     await storage.writeBool(_signedInKey, true);
     await storage.writeBool(_rememberMeKey, rememberMe);
-    await storage.writeString(_emailKey, trimmedEmail);
-    await storage.writeString(_nameKey, resolvedName);
+    await storage.writeString(_emailKey, email);
+    await storage.writeString(_nameKey, 'Driver User');
+    await storage.writeString(_phoneKey, '+1 234 567 890');
 
     if (rememberMe) {
-      await storage.writeString(_rememberedEmailKey, trimmedEmail);
+      await storage.writeString(_rememberedEmailKey, email);
     } else {
       await storage.remove(_rememberedEmailKey);
     }
+  }
+
+  Future<void> signUp({
+    required String fullName,
+    required String email,
+    required String phone,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    state = state.copyWith(isLoading: true);
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    state = state.copyWith(
+      isSignedIn: true,
+      email: email,
+      userName: fullName,
+      phoneNumber: phone,
+      isLoading: false,
+    );
+
+    final storage = ref.read(keyValueStorageProvider);
+    await storage.writeBool(_signedInKey, true);
+    await storage.writeString(_emailKey, email);
+    await storage.writeString(_nameKey, fullName);
+    await storage.writeString(_phoneKey, phone);
   }
 
   Future<void> signOut() async {
@@ -221,6 +230,8 @@ final class AppSessionController extends Notifier<AppSessionState> {
     }
   }
 
+  // ── Private helpers ──────────────────────────────────────────────────────
+
   DriverVehicleType _readVehicleType(String? rawValue) {
     return DriverVehicleType.values.firstWhere(
       (type) => type.name == rawValue,
@@ -233,23 +244,5 @@ final class AppSessionController extends Notifier<AppSessionState> {
       (preset) => preset.name == rawValue,
       orElse: () => DriverAvatarPreset.none,
     );
-  }
-
-  String _nameFromEmail(String email) {
-    final localPart = email.split('@').first;
-    final words = localPart
-        .split(RegExp(r'[._-]+'))
-        .where((word) => word.isNotEmpty)
-        .map(
-          (word) =>
-              '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
-        )
-        .toList();
-
-    if (words.isEmpty) {
-      return 'Driver';
-    }
-
-    return words.join(' ');
   }
 }

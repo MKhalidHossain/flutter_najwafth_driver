@@ -34,13 +34,10 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
 
     if (widget.successMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(widget.successMessage!)));
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(widget.successMessage!)),
+        );
       });
     }
   }
@@ -52,17 +49,12 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
     super.dispose();
   }
 
-  Future<void> _routeAfterSignIn() async {
+  void _routeAfterSignIn() {
     final session = ref.read(appSessionControllerProvider);
 
-    if (!mounted) {
-      return;
-    }
-
     if (session.profileCompleted) {
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
       return;
     }
 
@@ -79,38 +71,23 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
 
   Future<void> _submit() async {
     final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) {
-      return;
-    }
+    if (!isValid) return;
 
-    await ref
-        .read(appSessionControllerProvider.notifier)
-        .signIn(email: _emailController.text.trim(), rememberMe: _rememberMe);
-
-    await _routeAfterSignIn();
-  }
-
-  Future<void> _signInWithProvider(String providerName) async {
-    final normalized = providerName.toLowerCase();
-    final email = '$normalized.driver@books-on-wheels.demo';
-    final displayName = '$providerName Driver';
-
-    await ref
-        .read(appSessionControllerProvider.notifier)
-        .saveAccountIdentity(
-          userName: displayName,
-          email: email,
-          phoneNumber: '+1 555 0101',
+    await ref.read(appSessionControllerProvider.notifier).signIn(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          rememberMe: _rememberMe,
         );
-    await ref
-        .read(appSessionControllerProvider.notifier)
-        .signIn(email: email, rememberMe: true, userName: displayName);
 
-    await _routeAfterSignIn();
+    if (!mounted) return;
+    _routeAfterSignIn();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading =
+        ref.watch(appSessionControllerProvider.select((s) => s.isLoading));
+
     return DriverScaffold(
       child: Form(
         key: _formKey,
@@ -168,9 +145,10 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
                 const SizedBox(width: 12),
                 Text(
                   'Remember me',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(color: AppColors.subtitle),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(color: AppColors.subtitle),
                 ),
                 const Spacer(),
                 TextButton(
@@ -182,7 +160,11 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
               ],
             ),
             const SizedBox(height: 20),
-            DriverPrimaryButton(label: 'Sign in', onPressed: _submit),
+            DriverPrimaryButton(
+              label: 'Sign in',
+              onPressed: isLoading ? null : _submit,
+              isLoading: isLoading,
+            ),
             const SizedBox(height: 28),
             Wrap(
               alignment: WrapAlignment.center,
@@ -190,7 +172,7 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
               spacing: 4,
               children: [
                 Text(
-                  "Don’t have an account?",
+                  "Don't have an account?",
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: AppColors.title,
@@ -208,83 +190,6 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 32),
-            DriverSocialButton(
-              label: 'Continue with Google',
-              onPressed: () => _signInWithProvider('Google'),
-              leading: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'G',
-                          style: TextStyle(
-                            color: Color(0xFFEA4335),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'o',
-                          style: TextStyle(
-                            color: Color(0xFFFBBC04),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'o',
-                          style: TextStyle(
-                            color: Color(0xFF34A853),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'g',
-                          style: TextStyle(
-                            color: Color(0xFF4285F4),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'l',
-                          style: TextStyle(
-                            color: Color(0xFF34A853),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'e',
-                          style: TextStyle(
-                            color: Color(0xFFEA4335),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            DriverSocialButton(
-              label: 'Continue with Facebook',
-              onPressed: () => _signInWithProvider('Facebook'),
-              leading: const Text(
-                'f',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1877F2),
-                ),
-              ),
             ),
             const SizedBox(height: 16),
           ],

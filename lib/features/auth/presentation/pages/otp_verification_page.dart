@@ -51,12 +51,10 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
         timer.cancel();
         return;
       }
-
       if (_remainingSeconds == 0) {
         timer.cancel();
         return;
       }
-
       setState(() => _remainingSeconds -= 1);
     });
   }
@@ -78,22 +76,21 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
   }
 
   void _resendOtp() {
-    if (_remainingSeconds != 0) {
-      return;
-    }
+    if (_remainingSeconds != 0) return;
 
     for (final controller in _controllers) {
       controller.clear();
     }
     _focusNodes.first.requestFocus();
     _startTimer();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('A fresh OTP has been sent.')));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('A fresh OTP has been sent.')),
+    );
   }
 
   void _verifyOtp() {
-    final otp = _controllers.map((controller) => controller.text).join();
+    final otp = _controllers.map((c) => c.text).join();
     if (otp.length != _otpLength) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Enter the complete 6-digit OTP.')),
@@ -103,7 +100,10 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
 
     Navigator.of(context).pushReplacementNamed(
       AppRoutes.resetPassword,
-      arguments: ResetPasswordRouteArgs(email: widget.email),
+      arguments: ResetPasswordRouteArgs(
+        email: widget.email,
+        resetToken: 'mock_token',
+      ),
     );
   }
 
@@ -120,12 +120,20 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineMedium,
           ),
+          const SizedBox(height: 8),
+          Text(
+            'Sent to ${widget.email}',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.subtitle,
+                ),
+          ),
           const SizedBox(height: 24),
           LayoutBuilder(
             builder: (context, constraints) {
               const spacing = 8.0;
-              final boxWidth = ((constraints.maxWidth - (spacing * 5)) / 6)
-                  .clamp(42.0, 58.0);
+              final boxWidth =
+                  ((constraints.maxWidth - (spacing * 5)) / 6).clamp(42.0, 58.0);
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -144,16 +152,14 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(1),
                       ],
-                      style: Theme.of(context).textTheme.headlineLarge
-                          ?.copyWith(
+                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF293C66),
                           ),
                       decoration: InputDecoration(
                         counterText: '',
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 24,
-                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 24),
                         filled: false,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -161,9 +167,7 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
                       ),
                       onChanged: (value) => _handleOtpChanged(index, value),
                       onSubmitted: (_) {
-                        if (index == _otpLength - 1) {
-                          _verifyOtp();
-                        }
+                        if (index == _otpLength - 1) _verifyOtp();
                       },
                     ),
                   );

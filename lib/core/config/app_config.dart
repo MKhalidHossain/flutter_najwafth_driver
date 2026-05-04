@@ -13,7 +13,8 @@ final class AppConfig {
     : this(
         appName: 'Najwafth Driver',
         environment: AppEnvironment.development,
-        baseUrl: 'https://api.example.com',
+        // Use 10.0.2.2:5000 for Android emulator, 127.0.0.1:5000 for iOS simulator
+        baseUrl: 'http://127.0.0.1:5000',
       );
 
   final String appName;
