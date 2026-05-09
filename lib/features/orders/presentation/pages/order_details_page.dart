@@ -71,24 +71,61 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
 
   OrderStatus _parseStatus(String raw) {
     return switch (raw.toLowerCase()) {
-      'picked_up' => OrderStatus.pickedUp,
-      'on_way' => OrderStatus.onWay,
+      'picked_up' || 'in_progress' => OrderStatus.pickedUp,
+      'on_way' || 'shipped' => OrderStatus.onWay,
       'delivered' => OrderStatus.delivered,
       _ => OrderStatus.accepted,
     };
   }
 
-  void _nextStatus() {
-    // TODO: Call PATCH /api/v1/driver/orders/:orderId/status with the new
-    // status value once the backend provides that endpoint.
+  Future<void> _nextStatus() async {
     if (_currentStatus == OrderStatus.delivered) {
       Navigator.pop(context);
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Status update API not available yet.')),
-    );
+    final request = _request;
+    if (request == null) return;
+    
+    final orderId = request.orderId.isNotEmpty ? request.orderId : request.id;
+
+    final String nextStatusRaw = switch (_currentStatus) {
+      OrderStatus.accepted => 'picked_up',
+      OrderStatus.pickedUp => 'on_way',
+      OrderStatus.onWay => 'delivered',
+      OrderStatus.delivered => 'delivered',
+    };
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await ref
+        .read(driverApiProvider)
+        .updateOrderStatus(orderId: orderId, status: nextStatusRaw);
+
+    if (!mounted) return;
+
+    if (result.failureOrNull == null) {
+      setState(() {
+        _currentStatus = _parseStatus(nextStatusRaw);
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Status updated successfully')),
+      );
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.failureOrNull?.message ?? 'Failed to update status',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _openRoute(DriverRequest request) async {
