@@ -104,6 +104,17 @@ final class DriverApi {
     );
   }
 
+  Future<Result<void>> updateOrderStatus({
+    required String orderId,
+    required String status,
+  }) {
+    return _apiClient.patch(
+      '/api/v1/order/$orderId/status',
+      data: {'status': status},
+      parser: (_) {},
+    );
+  }
+
   // TODO: Add service methods only after backend supports online/offline,
   // pickup, on-way, delivered confirmation, earnings, history, vehicle
   // profile, location update, and route metadata endpoints.

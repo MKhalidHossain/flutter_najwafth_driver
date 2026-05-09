@@ -60,7 +60,7 @@ final class DriverRequest {
       location: json['location'] as String? ?? '',
       orderId: _readId(json['orderId']),
       message: json['message'] as String? ?? '',
-      status: json['status'] as String? ?? 'pending',
+      status: _readStatus(json),
       orderDate: _readDate(json['orderDate']),
       totalAmount: _readDouble(json['totalAmount']),
       price: _readDouble(json['price']),
@@ -271,4 +271,24 @@ int _readInt(Object? value, {required int fallback}) {
   if (value is num) return value.toInt();
   if (value is String) return int.tryParse(value) ?? fallback;
   return fallback;
+}
+
+String _readStatus(JsonMap json) {
+  final drStatus = json['status'] as String? ?? 'pending';
+  
+  // Only override if the driver request is accepted.
+  if (drStatus != 'accepted') return drStatus;
+
+  final order = json['orderId'];
+  if (order is JsonMap) {
+    final orderStatus = order['status'] as String?;
+    if (orderStatus != null) {
+      final os = orderStatus.toLowerCase();
+      // If the order has progressed beyond pending, use the order's status
+      if (os == 'picked_up' || os == 'in_progress' || os == 'shipped' || os == 'on_way' || os == 'delivered') {
+        return orderStatus;
+      }
+    }
+  }
+  return drStatus;
 }
