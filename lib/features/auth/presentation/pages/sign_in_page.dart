@@ -35,9 +35,9 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
     if (widget.successMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(widget.successMessage!)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(widget.successMessage!)));
       });
     }
   }
@@ -53,8 +53,9 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
     final session = ref.read(appSessionControllerProvider);
 
     if (session.profileCompleted) {
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
       return;
     }
 
@@ -73,20 +74,30 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
 
-    await ref.read(appSessionControllerProvider.notifier).signIn(
+    final errorMessage = await ref
+        .read(appSessionControllerProvider.notifier)
+        .signIn(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           rememberMe: _rememberMe,
         );
 
     if (!mounted) return;
+    if (errorMessage != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      return;
+    }
+
     _routeAfterSignIn();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading =
-        ref.watch(appSessionControllerProvider.select((s) => s.isLoading));
+    final isLoading = ref.watch(
+      appSessionControllerProvider.select((s) => s.isLoading),
+    );
 
     return DriverScaffold(
       child: Form(
@@ -145,10 +156,9 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
                 const SizedBox(width: 12),
                 Text(
                   'Remember me',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(color: AppColors.subtitle),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(color: AppColors.subtitle),
                 ),
                 const Spacer(),
                 TextButton(

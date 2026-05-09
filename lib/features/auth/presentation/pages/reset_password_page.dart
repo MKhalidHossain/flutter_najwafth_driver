@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
 import 'package:flutter_najwafth_driver/core/core.dart';
+import 'package:flutter_najwafth_driver/features/auth/data/auth_repository.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/widgets/auth_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final class ResetPasswordPage extends StatefulWidget {
-  const ResetPasswordPage({
-    required this.email,
-    required this.resetToken,
-    super.key,
-  });
+final class ResetPasswordPage extends ConsumerStatefulWidget {
+  const ResetPasswordPage({required this.email, required this.otp, super.key});
 
   final String email;
-  final String resetToken;
+  final String otp;
 
   @override
-  State<ResetPasswordPage> createState() => _ResetPasswordPageState();
+  ConsumerState<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
-final class _ResetPasswordPageState extends State<ResetPasswordPage> {
+final class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _newPasswordController;
   late final TextEditingController _confirmPasswordController;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -48,9 +47,29 @@ final class _ResetPasswordPageState extends State<ResetPasswordPage> {
     return null;
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
+
+    setState(() => _isLoading = true);
+    final result = await ref
+        .read(authRepositoryProvider)
+        .resetPassword(
+          email: widget.email,
+          otp: widget.otp,
+          password: _newPasswordController.text,
+        );
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      return;
+    }
 
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.signIn,
@@ -122,7 +141,11 @@ final class _ResetPasswordPageState extends State<ResetPasswordPage> {
               ),
             ),
             const SizedBox(height: 24),
-            DriverPrimaryButton(label: 'Continue', onPressed: _submit),
+            DriverPrimaryButton(
+              label: 'Continue',
+              onPressed: _isLoading ? null : _submit,
+              isLoading: _isLoading,
+            ),
             const SizedBox(height: 16),
           ],
         ),

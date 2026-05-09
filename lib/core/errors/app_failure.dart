@@ -60,7 +60,8 @@ final class AppFailure {
       DioExceptionType.badCertificate => 'Unable to verify the server.',
       DioExceptionType.badResponse => 'The server returned an error.',
       DioExceptionType.cancel => 'Request was cancelled.',
-      DioExceptionType.connectionError => 'No internet connection.',
+      DioExceptionType.connectionError =>
+        'Cannot reach the server. Make sure the backend is running and the API URL is correct.',
       DioExceptionType.unknown => 'Something went wrong. Please try again.',
     };
   }

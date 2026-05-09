@@ -1,7 +1,8 @@
 import 'package:flutter_najwafth_driver/core/errors/result.dart';
 import 'package:flutter_najwafth_driver/core/network/api_client.dart';
 import 'package:flutter_najwafth_driver/core/network/network_providers.dart';
-import 'package:flutter_najwafth_driver/features/auth/domain/user.dart';
+import 'package:flutter_najwafth_driver/features/auth/domain/user.dart'
+    show AuthResponse, TokenResponse;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -19,11 +20,9 @@ class AuthRepository {
   }) async {
     return _apiClient.post(
       '/api/v1/auth/login',
-      data: {
-        'email': email,
-        'password': password,
-      },
-      parser: (data) => AuthResponse.fromJson(data['data'] as Map<String, dynamic>),
+      data: {'email': email, 'password': password},
+      parser: (data) =>
+          AuthResponse.fromJson(data['data'] as Map<String, dynamic>),
     );
   }
 
@@ -37,14 +36,15 @@ class AuthRepository {
     return _apiClient.post(
       '/api/v1/auth/register',
       data: {
-        'fullName': fullName,
+        'name': fullName,
         'email': email,
         'phone': phone,
         'password': password,
         'confirmPassword': confirmPassword,
         'role': 'driver',
       },
-      parser: (data) => AuthResponse.fromJson(data['data'] as Map<String, dynamic>),
+      parser: (data) =>
+          AuthResponse.fromJson(data['data'] as Map<String, dynamic>),
     );
   }
 
@@ -62,36 +62,34 @@ class AuthRepository {
   }) async {
     return _apiClient.post(
       '/api/v1/auth/verify-otp',
-      data: {
-        'email': email,
-        'otp': otp,
-      },
-      parser: (data) => data['data']['resetToken'] as String,
+      data: {'email': email, 'otp': otp},
+      parser: (data) => data['message'] as String? ?? 'OTP verified',
     );
   }
 
   Future<Result<String>> resetPassword({
     required String email,
-    required String resetToken,
-    required String newPassword,
-    required String confirmPassword,
+    required String otp,
+    required String password,
   }) async {
     return _apiClient.post(
       '/api/v1/auth/reset-password',
-      data: {
-        'email': email,
-        'resetToken': resetToken,
-        'newPassword': newPassword,
-        'confirmPassword': confirmPassword,
-      },
-      parser: (data) => data['message'] as String? ?? 'Password reset successfully',
+      data: {'email': email, 'otp': otp, 'password': password},
+      parser: (data) =>
+          data['message'] as String? ?? 'Password reset successfully',
+    );
+  }
+
+  Future<Result<TokenResponse>> refreshToken(String token) async {
+    return _apiClient.post(
+      '/api/v1/auth/refresh-token',
+      data: {'refreshToken': token},
+      parser: (data) =>
+          TokenResponse.fromJson(data['data'] as Map<String, dynamic>),
     );
   }
 
   Future<Result<void>> logout() async {
-    return _apiClient.post(
-      '/api/v1/auth/logout',
-      parser: (_) {},
-    );
+    return _apiClient.post('/api/v1/auth/logout', parser: (_) {});
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_najwafth_driver/core/core.dart';
+import 'package:flutter_najwafth_driver/features/auth/data/auth_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final appSessionControllerProvider =
@@ -93,6 +94,8 @@ final class AppSessionController extends Notifier<AppSessionState> {
   static const _signedInKey = 'driver.auth.signed_in';
   static const _rememberMeKey = 'driver.auth.remember_me';
   static const _rememberedEmailKey = 'driver.auth.remembered_email';
+  static const _accessTokenKey = 'auth.access_token';
+  static const _refreshTokenKey = 'auth.refresh_token';
   static const _emailKey = 'driver.profile.email';
   static const _nameKey = 'driver.profile.name';
   static const _phoneKey = 'driver.profile.phone';
@@ -129,39 +132,56 @@ final class AppSessionController extends Notifier<AppSessionState> {
     await ref.read(keyValueStorageProvider).writeBool(_onboardingKey, true);
   }
 
-  Future<void> signIn({
+  Future<String?> signIn({
     required String email,
     required String password,
     required bool rememberMe,
   }) async {
     state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(milliseconds: 800));
+
+    final result = await ref
+        .read(authRepositoryProvider)
+        .login(email: email, password: password);
+
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      state = state.copyWith(isLoading: false);
+      return failure.message;
+    }
+
+    final auth = result.dataOrNull!;
+    if (auth.user.role != 'driver') {
+      state = state.copyWith(isLoading: false);
+      return 'This account is not registered as a driver.';
+    }
+
+    final storage = ref.read(keyValueStorageProvider);
+    await storage.writeString(_accessTokenKey, auth.accessToken);
+    await storage.writeString(_refreshTokenKey, auth.refreshToken);
+    await storage.writeBool(_signedInKey, true);
+    await storage.writeBool(_rememberMeKey, rememberMe);
+    await storage.writeString(_emailKey, auth.user.email);
+    await storage.writeString(_nameKey, auth.user.fullName);
+    await storage.writeString(_phoneKey, auth.user.phone);
+    if (rememberMe) {
+      await storage.writeString(_rememberedEmailKey, auth.user.email);
+    } else {
+      await storage.remove(_rememberedEmailKey);
+    }
 
     state = state.copyWith(
       isSignedIn: true,
       rememberMe: rememberMe,
-      rememberedEmail: rememberMe ? email : null,
-      email: email,
-      userName: 'Driver User',
-      phoneNumber: '+1 234 567 890',
+      rememberedEmail: rememberMe ? auth.user.email : null,
+      email: auth.user.email,
+      userName: auth.user.fullName,
+      phoneNumber: auth.user.phone,
       isLoading: false,
     );
-
-    final storage = ref.read(keyValueStorageProvider);
-    await storage.writeBool(_signedInKey, true);
-    await storage.writeBool(_rememberMeKey, rememberMe);
-    await storage.writeString(_emailKey, email);
-    await storage.writeString(_nameKey, 'Driver User');
-    await storage.writeString(_phoneKey, '+1 234 567 890');
-
-    if (rememberMe) {
-      await storage.writeString(_rememberedEmailKey, email);
-    } else {
-      await storage.remove(_rememberedEmailKey);
-    }
+    return null;
   }
 
-  Future<void> signUp({
+  Future<String?> signUp({
     required String fullName,
     required String email,
     required String phone,
@@ -169,26 +189,59 @@ final class AppSessionController extends Notifier<AppSessionState> {
     required String confirmPassword,
   }) async {
     state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(milliseconds: 800));
+
+    final result = await ref
+        .read(authRepositoryProvider)
+        .register(
+          fullName: fullName,
+          email: email,
+          phone: phone,
+          password: password,
+          confirmPassword: confirmPassword,
+        );
+
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      state = state.copyWith(isLoading: false);
+      return failure.message;
+    }
+
+    final auth = result.dataOrNull!;
+    if (auth.user.role != 'driver') {
+      state = state.copyWith(isLoading: false);
+      return 'This account is not registered as a driver.';
+    }
+
+    final storage = ref.read(keyValueStorageProvider);
+    await storage.writeString(_accessTokenKey, auth.accessToken);
+    await storage.writeString(_refreshTokenKey, auth.refreshToken);
+    await storage.writeBool(_signedInKey, true);
+    await storage.writeString(_emailKey, auth.user.email);
+    await storage.writeString(_nameKey, auth.user.fullName);
+    await storage.writeString(_phoneKey, auth.user.phone);
 
     state = state.copyWith(
       isSignedIn: true,
-      email: email,
-      userName: fullName,
-      phoneNumber: phone,
+      email: auth.user.email,
+      userName: auth.user.fullName,
+      phoneNumber: auth.user.phone,
       isLoading: false,
     );
-
-    final storage = ref.read(keyValueStorageProvider);
-    await storage.writeBool(_signedInKey, true);
-    await storage.writeString(_emailKey, email);
-    await storage.writeString(_nameKey, fullName);
-    await storage.writeString(_phoneKey, phone);
+    return null;
   }
 
   Future<void> signOut() async {
-    state = state.copyWith(isSignedIn: false);
-    await ref.read(keyValueStorageProvider).writeBool(_signedInKey, false);
+    await ref.read(authRepositoryProvider).logout();
+    final storage = ref.read(keyValueStorageProvider);
+    await storage.remove(_accessTokenKey);
+    await storage.remove(_refreshTokenKey);
+    await storage.writeBool(_signedInKey, false);
+    state = state.copyWith(
+      isSignedIn: false,
+      email: null,
+      userName: null,
+      phoneNumber: null,
+    );
   }
 
   Future<void> completeProfile({

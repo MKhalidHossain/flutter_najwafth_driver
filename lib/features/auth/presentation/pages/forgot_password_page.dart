@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
 import 'package:flutter_najwafth_driver/core/core.dart';
+import 'package:flutter_najwafth_driver/features/auth/data/auth_repository.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/widgets/auth_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final class ForgotPasswordPage extends StatefulWidget {
+final class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
 
   @override
-  State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
+  ConsumerState<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
 
-final class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+final class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _emailController;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -26,14 +29,28 @@ final class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
 
-    Navigator.of(context).pushNamed(
-      AppRoutes.otp,
-      arguments: OtpRouteArgs(email: _emailController.text.trim()),
-    );
+    setState(() => _isLoading = true);
+    final email = _emailController.text.trim();
+    final result = await ref.read(authRepositoryProvider).forgotPassword(email);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      return;
+    }
+
+    Navigator.of(
+      context,
+    ).pushNamed(AppRoutes.otp, arguments: OtpRouteArgs(email: email));
   }
 
   @override
@@ -63,7 +80,11 @@ final class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               onFieldSubmitted: (_) => _submit(),
             ),
             const SizedBox(height: 24),
-            DriverPrimaryButton(label: 'Send OTP', onPressed: _submit),
+            DriverPrimaryButton(
+              label: 'Send OTP',
+              onPressed: _isLoading ? null : _submit,
+              isLoading: _isLoading,
+            ),
             const SizedBox(height: 16),
           ],
         ),

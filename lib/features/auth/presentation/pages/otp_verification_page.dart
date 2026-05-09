@@ -4,24 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
 import 'package:flutter_najwafth_driver/core/core.dart';
+import 'package:flutter_najwafth_driver/features/auth/data/auth_repository.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/widgets/auth_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final class OtpVerificationPage extends StatefulWidget {
+final class OtpVerificationPage extends ConsumerStatefulWidget {
   const OtpVerificationPage({required this.email, super.key});
 
   final String email;
 
   @override
-  State<OtpVerificationPage> createState() => _OtpVerificationPageState();
+  ConsumerState<OtpVerificationPage> createState() =>
+      _OtpVerificationPageState();
 }
 
-final class _OtpVerificationPageState extends State<OtpVerificationPage> {
+final class _OtpVerificationPageState
+    extends ConsumerState<OtpVerificationPage> {
   static const _otpLength = 6;
 
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
   Timer? _timer;
   int _remainingSeconds = 45;
+  bool _isLoading = false;
+  bool _isResending = false;
 
   @override
   void initState() {
@@ -75,8 +81,24 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
     }
   }
 
-  void _resendOtp() {
+  Future<void> _resendOtp() async {
     if (_remainingSeconds != 0) return;
+
+    setState(() => _isResending = true);
+    final result = await ref
+        .read(authRepositoryProvider)
+        .forgotPassword(widget.email);
+
+    if (!mounted) return;
+    setState(() => _isResending = false);
+
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      return;
+    }
 
     for (final controller in _controllers) {
       controller.clear();
@@ -85,11 +107,13 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
     _startTimer();
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('A fresh OTP has been sent.')),
+      SnackBar(
+        content: Text(result.dataOrNull ?? 'A fresh OTP has been sent.'),
+      ),
     );
   }
 
-  void _verifyOtp() {
+  Future<void> _verifyOtp() async {
     final otp = _controllers.map((c) => c.text).join();
     if (otp.length != _otpLength) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -98,12 +122,25 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
       return;
     }
 
+    setState(() => _isLoading = true);
+    final result = await ref
+        .read(authRepositoryProvider)
+        .verifyOtp(email: widget.email, otp: otp);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      return;
+    }
+
     Navigator.of(context).pushReplacementNamed(
       AppRoutes.resetPassword,
-      arguments: ResetPasswordRouteArgs(
-        email: widget.email,
-        resetToken: 'mock_token',
-      ),
+      arguments: ResetPasswordRouteArgs(email: widget.email, otp: otp),
     );
   }
 
@@ -124,16 +161,16 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
           Text(
             'Sent to ${widget.email}',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.subtitle,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.subtitle),
           ),
           const SizedBox(height: 24),
           LayoutBuilder(
             builder: (context, constraints) {
               const spacing = 8.0;
-              final boxWidth =
-                  ((constraints.maxWidth - (spacing * 5)) / 6).clamp(42.0, 58.0);
+              final boxWidth = ((constraints.maxWidth - (spacing * 5)) / 6)
+                  .clamp(42.0, 58.0);
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -152,14 +189,16 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(1),
                       ],
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      style: Theme.of(context).textTheme.headlineLarge
+                          ?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF293C66),
                           ),
                       decoration: InputDecoration(
                         counterText: '',
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 24),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 24,
+                        ),
                         filled: false,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -199,9 +238,9 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
                 ),
               ),
               GestureDetector(
-                onTap: _resendOtp,
+                onTap: _isResending ? null : _resendOtp,
                 child: Text(
-                  'RESEND OTP',
+                  _isResending ? 'SENDING...' : 'RESEND OTP',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: _remainingSeconds == 0
                         ? AppColors.success
@@ -213,7 +252,11 @@ final class _OtpVerificationPageState extends State<OtpVerificationPage> {
             ],
           ),
           const SizedBox(height: 24),
-          DriverPrimaryButton(label: 'Verify Now', onPressed: _verifyOtp),
+          DriverPrimaryButton(
+            label: 'Verify Now',
+            onPressed: _isLoading ? null : _verifyOtp,
+            isLoading: _isLoading,
+          ),
           const SizedBox(height: 16),
         ],
       ),

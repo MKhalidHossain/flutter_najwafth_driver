@@ -16,6 +16,7 @@ import 'package:flutter_najwafth_driver/features/profile/presentation/pages/priv
 import 'package:flutter_najwafth_driver/features/profile/presentation/pages/terms_conditions_page.dart';
 import 'package:flutter_najwafth_driver/features/profile/presentation/pages/choose_language_page.dart';
 import 'package:flutter_najwafth_driver/features/notifications/presentation/pages/notifications_page.dart';
+
 final class AppRoutes {
   const AppRoutes._();
 
@@ -27,7 +28,8 @@ final class AppRoutes {
   static const String otp = '/otp';
   static const String resetPassword = '/reset-password';
   static const String completeProfile = '/complete-profile';
-  static const String home = '/home'; // Keeping original for backward compat if needed
+  static const String home =
+      '/home'; // Keeping original for backward compat if needed
   static const String dashboard = '/dashboard';
   static const String orderDetails = '/order-details';
   static const String editProfile = '/edit-profile';
@@ -53,13 +55,10 @@ final class OtpRouteArgs {
 }
 
 final class ResetPasswordRouteArgs {
-  const ResetPasswordRouteArgs({
-    required this.email,
-    required this.resetToken,
-  });
+  const ResetPasswordRouteArgs({required this.email, required this.otp});
 
   final String email;
-  final String resetToken;
+  final String otp;
 }
 
 final class CompleteProfileRouteArgs {
@@ -104,7 +103,7 @@ final class AppRouter {
       case AppRoutes.resetPassword:
         final args = settings.arguments as ResetPasswordRouteArgs;
         return _pageRoute(
-          ResetPasswordPage(email: args.email, resetToken: args.resetToken),
+          ResetPasswordPage(email: args.email, otp: args.otp),
           settings,
         );
       case AppRoutes.completeProfile:

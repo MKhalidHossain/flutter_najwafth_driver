@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 enum AppEnvironment { development, staging, production }
 
 final class AppConfig {
@@ -9,13 +11,13 @@ final class AppConfig {
     this.receiveTimeout = const Duration(seconds: 20),
   });
 
-  const AppConfig.development()
-    : this(
-        appName: 'Najwafth Driver',
-        environment: AppEnvironment.development,
-        // Use 10.0.2.2:5000 for Android emulator, 127.0.0.1:5000 for iOS simulator
-        baseUrl: 'http://127.0.0.1:5000',
-      );
+  factory AppConfig.development() {
+    return AppConfig(
+      appName: 'Najwafth Driver',
+      environment: AppEnvironment.development,
+      baseUrl: _developmentBaseUrl,
+    );
+  }
 
   final String appName;
   final AppEnvironment environment;
@@ -25,4 +27,13 @@ final class AppConfig {
 
   bool get isDevelopment => environment == AppEnvironment.development;
   bool get isProduction => environment == AppEnvironment.production;
+
+  static String get _developmentBaseUrl {
+    const dartDefineUrl = String.fromEnvironment('API_BASE_URL');
+    if (dartDefineUrl.isNotEmpty) return dartDefineUrl;
+
+    return defaultTargetPlatform == TargetPlatform.android
+        ? 'http://10.0.2.2:5001'
+        : 'http://localhost:5001';
+  }
 }

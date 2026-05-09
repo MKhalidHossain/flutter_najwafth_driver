@@ -16,13 +16,19 @@ class User {
   final bool isEmailVerified;
 
   factory User.fromJson(Map<String, dynamic> json) {
+    final verificationInfo = json['verificationInfo'];
+
     return User(
       id: json['_id'] as String? ?? '',
-      fullName: json['fullName'] as String? ?? '',
+      fullName: json['name'] as String? ?? json['fullName'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
       role: json['role'] as String? ?? '',
-      isEmailVerified: json['isEmailVerified'] as bool? ?? false,
+      isEmailVerified:
+          json['isEmailVerified'] as bool? ??
+          (verificationInfo is Map
+              ? verificationInfo['verified'] as bool? ?? false
+              : false),
     );
   }
 }
@@ -39,8 +45,26 @@ class AuthResponse {
   final String refreshToken;
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    final userJson = json['user'] is Map<String, dynamic>
+        ? json['user'] as Map<String, dynamic>
+        : json;
+
     return AuthResponse(
-      user: User.fromJson(json['user'] as Map<String, dynamic>),
+      user: User.fromJson(userJson),
+      accessToken: json['accessToken'] as String? ?? '',
+      refreshToken: json['refreshToken'] as String? ?? '',
+    );
+  }
+}
+
+class TokenResponse {
+  const TokenResponse({required this.accessToken, required this.refreshToken});
+
+  final String accessToken;
+  final String refreshToken;
+
+  factory TokenResponse.fromJson(Map<String, dynamic> json) {
+    return TokenResponse(
       accessToken: json['accessToken'] as String? ?? '',
       refreshToken: json['refreshToken'] as String? ?? '',
     );

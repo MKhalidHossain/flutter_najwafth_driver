@@ -43,8 +43,11 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
   }
 
   String? _validateConfirmPassword(String? value) {
-    final passwordError =
-        Validators.minLength(value, 6, label: 'Confirm password');
+    final passwordError = Validators.minLength(
+      value,
+      6,
+      label: 'Confirm password',
+    );
     if (passwordError != null) return passwordError;
 
     if (value!.trim() != _passwordController.text.trim()) {
@@ -57,7 +60,9 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
 
-    await ref.read(appSessionControllerProvider.notifier).signUp(
+    final errorMessage = await ref
+        .read(appSessionControllerProvider.notifier)
+        .signUp(
           fullName: _nameController.text.trim(),
           email: _emailController.text.trim(),
           phone: _phoneController.text.trim(),
@@ -66,6 +71,12 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
         );
 
     if (!mounted) return;
+    if (errorMessage != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      return;
+    }
 
     final session = ref.read(appSessionControllerProvider);
     Navigator.of(context).pushNamed(
@@ -81,8 +92,9 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading =
-        ref.watch(appSessionControllerProvider.select((s) => s.isLoading));
+    final isLoading = ref.watch(
+      appSessionControllerProvider.select((s) => s.isLoading),
+    );
 
     return DriverScaffold(
       child: Form(
