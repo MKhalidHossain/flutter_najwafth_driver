@@ -54,18 +54,53 @@ final class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     super.dispose();
   }
 
-  Future<void> _completeOnboarding() async {
+  Future<void> _skipOnboarding() async {
     await ref.read(appSessionControllerProvider.notifier).completeOnboarding();
     if (!mounted) {
       return;
     }
 
-    Navigator.of(context).pushReplacementNamed(AppRoutes.signIn);
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.signIn, (route) => false);
+  }
+
+  Future<void> _finishOnboarding() async {
+    await ref.read(appSessionControllerProvider.notifier).completeOnboarding();
+    if (!mounted) {
+      return;
+    }
+
+    final session = ref.read(appSessionControllerProvider);
+    if (!session.isSignedIn) {
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.signIn, (route) => false);
+      return;
+    }
+
+    if (!session.profileCompleted) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.completeProfile,
+        (route) => false,
+        arguments: CompleteProfileRouteArgs(
+          prefilledName: session.userName,
+          email: session.email,
+          phoneNumber: session.phoneNumber,
+          shouldReturnToSignIn: false,
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
   }
 
   Future<void> _goNext() async {
     if (_currentIndex == _slides.length - 1) {
-      await _completeOnboarding();
+      await _finishOnboarding();
       return;
     }
 
@@ -109,7 +144,7 @@ final class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 ),
                 const Spacer(),
                 TextButton(
-                  onPressed: _completeOnboarding,
+                  onPressed: _skipOnboarding,
                   child: const Text(
                     'Skip',
                     style: TextStyle(
@@ -173,7 +208,12 @@ final class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             ),
             OnboardingDots(currentIndex: _currentIndex, total: _slides.length),
             SizedBox(height: compact ? 24 : 28),
-            DriverPrimaryButton(label: 'Next', onPressed: _goNext),
+            DriverPrimaryButton(
+              label: _currentIndex == _slides.length - 1
+                  ? 'Let’s Get Started'
+                  : 'Next',
+              onPressed: _goNext,
+            ),
             const SizedBox(height: 6),
           ],
         ),

@@ -38,12 +38,16 @@ class LocationInfoCard extends StatelessWidget {
             children: [
               Icon(titleIcon, color: AppColors.primary, size: 22),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.title,
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.title,
+                  ),
                 ),
               ),
             ],
@@ -67,6 +71,8 @@ class LocationInfoCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             locationName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -81,6 +87,8 @@ class LocationInfoCard extends StatelessWidget {
                       padding: const EdgeInsets.only(left: 22),
                       child: Text(
                         address,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.subtitle,
@@ -141,14 +149,13 @@ class LocationInfoCard extends StatelessWidget {
 
   Widget _buildInfoRow(String label, String value) {
     return RichText(
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
       text: TextSpan(
         children: [
           TextSpan(
             text: '$label ',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.subtitle,
-            ),
+            style: const TextStyle(fontSize: 12, color: AppColors.subtitle),
           ),
           TextSpan(
             text: value,

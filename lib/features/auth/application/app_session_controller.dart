@@ -231,16 +231,76 @@ final class AppSessionController extends Notifier<AppSessionState> {
   }
 
   Future<void> signOut() async {
-    await ref.read(authRepositoryProvider).logout();
+    try {
+      await ref.read(authRepositoryProvider).logout();
+    } on Object {
+      // Local sign-out should still complete if the backend logout request
+      // fails because the token is already invalid or the network is down.
+    } finally {
+      await clearLocalSession();
+    }
+  }
+
+  Future<void> clearLocalSession() async {
     final storage = ref.read(keyValueStorageProvider);
     await storage.remove(_accessTokenKey);
     await storage.remove(_refreshTokenKey);
+    await storage.remove(_emailKey);
+    await storage.remove(_nameKey);
+    await storage.remove(_phoneKey);
+    await storage.remove(_driverIdKey);
+    await storage.remove(_entrepreneurStatusKey);
+    await storage.remove(_vehiclePlateNumberKey);
+    await storage.remove(_vehicleTypeKey);
+    await storage.remove(_avatarPresetKey);
     await storage.writeBool(_signedInKey, false);
+    await storage.writeBool(_profileCompletedKey, false);
     state = state.copyWith(
       isSignedIn: false,
+      profileCompleted: false,
       email: null,
       userName: null,
       phoneNumber: null,
+      driverId: null,
+      entrepreneurStatus: null,
+      vehiclePlateNumber: null,
+      vehicleType: DriverVehicleType.bike,
+      avatarPreset: DriverAvatarPreset.none,
+    );
+  }
+
+  Future<void> updateCachedProfile({
+    required String name,
+    required String email,
+    required String phone,
+  }) async {
+    final storage = ref.read(keyValueStorageProvider);
+    await storage.writeString(_nameKey, name);
+    await storage.writeString(_emailKey, email);
+    await storage.writeString(_phoneKey, phone);
+
+    state = state.copyWith(userName: name, email: email, phoneNumber: phone);
+  }
+
+  Future<void> updateVehicleDetailsLocally({
+    required DriverVehicleType vehicleType,
+    String? vehiclePlateNumber,
+  }) async {
+    final trimmedPlate = vehiclePlateNumber?.trim();
+    final storage = ref.read(keyValueStorageProvider);
+    await storage.writeString(_vehicleTypeKey, vehicleType.name);
+
+    if (trimmedPlate == null || trimmedPlate.isEmpty) {
+      await storage.remove(_vehiclePlateNumberKey);
+    } else {
+      await storage.writeString(_vehiclePlateNumberKey, trimmedPlate);
+    }
+
+    state = state.copyWith(
+      vehicleType: vehicleType,
+      vehiclePlateNumber: trimmedPlate == null || trimmedPlate.isEmpty
+          ? null
+          : trimmedPlate,
     );
   }
 

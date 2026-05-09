@@ -1,15 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_najwafth_driver/core/storage/storage_providers.dart';
 import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ChooseLanguagePage extends StatefulWidget {
+// TODO: Connect to app i18n once localization delegates/locales are added.
+// TODO: Sync language with PATCH /api/v1/user/language when backend support is
+// available.
+class ChooseLanguagePage extends ConsumerStatefulWidget {
   const ChooseLanguagePage({super.key});
 
   @override
-  State<ChooseLanguagePage> createState() => _ChooseLanguagePageState();
+  ConsumerState<ChooseLanguagePage> createState() => _ChooseLanguagePageState();
 }
 
-class _ChooseLanguagePageState extends State<ChooseLanguagePage> {
+class _ChooseLanguagePageState extends ConsumerState<ChooseLanguagePage> {
+  static const _languageKey = 'driver.settings.language';
+
   String _selectedLanguage = 'English';
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLanguage =
+        ref.read(keyValueStorageProvider).readString(_languageKey) ??
+        _selectedLanguage;
+  }
+
+  Future<void> _saveLanguage() async {
+    await ref
+        .read(keyValueStorageProvider)
+        .writeString(_languageKey, _selectedLanguage);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Language saved: $_selectedLanguage')),
+    );
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +47,11 @@ class _ChooseLanguagePageState extends State<ChooseLanguagePage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.title),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            size: 20,
+            color: AppColors.title,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -50,7 +82,7 @@ class _ChooseLanguagePageState extends State<ChooseLanguagePage> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () {},
+                onPressed: _saveLanguage,
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -87,10 +119,7 @@ class _ChooseLanguagePageState extends State<ChooseLanguagePage> {
         ),
         child: Row(
           children: [
-            Text(
-              flag,
-              style: const TextStyle(fontSize: 24),
-            ),
+            Text(flag, style: const TextStyle(fontSize: 24)),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -116,7 +145,9 @@ class _ChooseLanguagePageState extends State<ChooseLanguagePage> {
               ),
             ),
             Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
               color: isSelected ? Colors.black : AppColors.border,
             ),
           ],

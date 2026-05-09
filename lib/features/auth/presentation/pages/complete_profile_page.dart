@@ -150,6 +150,8 @@ final class _CompleteProfilePageState
       return;
     }
 
+    // TODO: PATCH /api/v1/driver/profile is needed to persist driver vehicle
+    // details, driver ID, entrepreneur status, and avatar preference.
     await ref
         .read(appSessionControllerProvider.notifier)
         .completeProfile(

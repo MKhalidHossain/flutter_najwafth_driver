@@ -5,6 +5,7 @@ import 'package:flutter_najwafth_driver/features/auth/presentation/pages/otp_ver
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/sign_up_page.dart';
+import 'package:flutter_najwafth_driver/features/driver_requests/presentation/pages/driver_request_details_page.dart';
 import 'package:flutter_najwafth_driver/features/onboarding/presentation/onboarding_page.dart';
 import 'package:flutter_najwafth_driver/features/splash/presentation/splash_page.dart';
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -31,6 +32,7 @@ final class AppRoutes {
   static const String home =
       '/home'; // Keeping original for backward compat if needed
   static const String dashboard = '/dashboard';
+  static const String driverRequestDetails = '/driver-request-details';
   static const String orderDetails = '/order-details';
   static const String editProfile = '/edit-profile';
   static const String changePassword = '/change-password';
@@ -73,6 +75,19 @@ final class CompleteProfileRouteArgs {
   final String? email;
   final String? phoneNumber;
   final bool shouldReturnToSignIn;
+}
+
+final class DriverRequestDetailsRouteArgs {
+  const DriverRequestDetailsRouteArgs({required this.driverRequestId});
+
+  final String driverRequestId;
+}
+
+final class OrderDetailsRouteArgs {
+  const OrderDetailsRouteArgs({String? driverRequestId, String? orderId})
+    : driverRequestId = driverRequestId ?? orderId ?? '';
+
+  final String driverRequestId;
 }
 
 final class AppRouter {
@@ -121,8 +136,30 @@ final class AppRouter {
         return _pageRoute(const DashboardPage(), settings);
       case AppRoutes.dashboard:
         return _pageRoute(const DashboardPage(), settings);
+      case AppRoutes.driverRequestDetails:
+        final driverRequestId = _readDriverRequestId(settings.arguments);
+        if (driverRequestId == null) {
+          return _pageRoute(
+            const _MissingRouteArgumentPage(argumentName: 'driverRequestId'),
+            settings,
+          );
+        }
+        return _pageRoute(
+          DriverRequestDetailsPage(driverRequestId: driverRequestId),
+          settings,
+        );
       case AppRoutes.orderDetails:
-        return _pageRoute(const OrderDetailsPage(), settings);
+        final driverRequestId = _readOrderId(settings.arguments);
+        if (driverRequestId == null) {
+          return _pageRoute(
+            const _MissingRouteArgumentPage(argumentName: 'orderId'),
+            settings,
+          );
+        }
+        return _pageRoute(
+          OrderDetailsPage(driverRequestId: driverRequestId),
+          settings,
+        );
       case AppRoutes.editProfile:
         return _pageRoute(const EditProfilePage(), settings);
       case AppRoutes.changePassword:
@@ -149,6 +186,56 @@ final class AppRouter {
     return MaterialPageRoute<dynamic>(
       builder: (_) => child,
       settings: settings,
+    );
+  }
+
+  static String? _readDriverRequestId(Object? arguments) {
+    if (arguments is DriverRequestDetailsRouteArgs) {
+      return _nonEmpty(arguments.driverRequestId);
+    }
+    if (arguments is String) return _nonEmpty(arguments);
+    if (arguments is Map) {
+      return _nonEmpty(arguments['driverRequestId']?.toString());
+    }
+    return null;
+  }
+
+  static String? _readOrderId(Object? arguments) {
+    if (arguments is OrderDetailsRouteArgs) {
+      return _nonEmpty(arguments.driverRequestId);
+    }
+    if (arguments is String) return _nonEmpty(arguments);
+    if (arguments is Map) {
+      return _nonEmpty(
+        arguments['driverRequestId']?.toString() ??
+            arguments['orderId']?.toString(),
+      );
+    }
+    return null;
+  }
+
+  static String? _nonEmpty(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    return trimmed;
+  }
+}
+
+final class _MissingRouteArgumentPage extends StatelessWidget {
+  const _MissingRouteArgumentPage({required this.argumentName});
+
+  final String argumentName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text('Missing $argumentName.', textAlign: TextAlign.center),
+        ),
+      ),
     );
   }
 }

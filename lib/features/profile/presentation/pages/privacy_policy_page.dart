@@ -1,26 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
 
+// TODO: Replace static content with GET /api/v1/settings/privacy-policy when
+// backend settings content is available.
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const String dummyText = 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
-        'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an '
-        'unknown printer took a galley of type and scrambled it to make a type specimen book.\n\n'
-        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
-        'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an '
-        'unknown printer took a galley of type and scrambled it to make a type specimen book.\n\n'
-        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
-        'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an '
-        'unknown printer took a galley of type and scrambled it to make a type specimen book.\n\n'
-        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
-        'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an '
-        'unknown printer took a galley of type and scrambled it to make a type specimen book.\n\n'
-        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
-        'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an '
-        'unknown printer took a galley of type and scrambled it to make a type specimen book.';
+    const String content =
+        'Najwafth Driver uses account and profile information to identify the signed-in driver and keep protected app features secure.\n\n'
+        'The app may display delivery request details such as shop name, customer name, phone number, item information, delivery location, route hints, notifications, and order status. These details are used only to support delivery workflows inside the app.\n\n'
+        'Authentication tokens are stored locally so protected API requests can be authorized. Logging out clears the stored tokens and local user session data.\n\n'
+        'This privacy content is static until backend-managed policy content is available.';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -28,7 +20,11 @@ class PrivacyPolicyPage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.title),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            size: 20,
+            color: AppColors.title,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -43,12 +39,8 @@ class PrivacyPolicyPage extends StatelessWidget {
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(20),
         child: Text(
-          dummyText,
-          style: TextStyle(
-            fontSize: 14,
-            height: 1.5,
-            color: AppColors.title,
-          ),
+          content,
+          style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.title),
         ),
       ),
     );

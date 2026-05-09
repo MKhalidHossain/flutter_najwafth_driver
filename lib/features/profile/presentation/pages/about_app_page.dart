@@ -1,26 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
 
+// TODO: Replace static content with GET /api/v1/settings/about when backend
+// settings content is available.
 class AboutAppPage extends StatelessWidget {
   const AboutAppPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const String dummyText = 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
-        'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an '
-        'unknown printer took a galley of type and scrambled it to make a type specimen book.\n\n'
-        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
-        'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an '
-        'unknown printer took a galley of type and scrambled it to make a type specimen book.\n\n'
-        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
-        'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an '
-        'unknown printer took a galley of type and scrambled it to make a type specimen book.\n\n'
-        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
-        'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an '
-        'unknown printer took a galley of type and scrambled it to make a type specimen book.\n\n'
-        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
-        'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an '
-        'unknown printer took a galley of type and scrambled it to make a type specimen book.';
+    const String content =
+        'Najwafth Driver helps delivery partners view available requests, manage active deliveries, follow route information, and track completed work from one focused app.\n\n'
+        'The current driver flow is connected to authentication, profile, notifications, and driver request APIs. Delivery lifecycle features such as accept, reject, live status updates, route metadata, and earnings will become fully live when the backend exposes the dedicated driver endpoints.\n\n'
+        'This screen uses static app information until backend-managed settings content is available.';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -28,7 +19,11 @@ class AboutAppPage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.title),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            size: 20,
+            color: AppColors.title,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -43,12 +38,8 @@ class AboutAppPage extends StatelessWidget {
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(20),
         child: Text(
-          dummyText,
-          style: TextStyle(
-            fontSize: 14,
-            height: 1.5,
-            color: AppColors.title,
-          ),
+          content,
+          style: TextStyle(fontSize: 14, height: 1.5, color: AppColors.title),
         ),
       ),
     );

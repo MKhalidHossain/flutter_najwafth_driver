@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
 
 class OrderItemsCard extends StatelessWidget {
-  const OrderItemsCard({super.key});
+  const OrderItemsCard({super.key, this.itemName = 'Delivery'});
+
+  final String itemName;
 
   @override
   Widget build(BuildContext context) {
@@ -19,24 +21,34 @@ class OrderItemsCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.inventory_2_outlined, color: AppColors.primary, size: 22),
+              Icon(
+                Icons.inventory_2_outlined,
+                color: AppColors.primary,
+                size: 22,
+              ),
               const SizedBox(width: 8),
-              const Text(
-                'Order Items',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.title,
+              const Expanded(
+                child: Text(
+                  'Order Items',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.title,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.only(left: 30),
+          Padding(
+            padding: const EdgeInsets.only(left: 30),
             child: Text(
-              '4 BOOKS',
-              style: TextStyle(
+              itemName,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.title,

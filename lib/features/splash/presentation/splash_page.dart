@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
 import 'package:flutter_najwafth_driver/core/core.dart';
+import 'package:flutter_najwafth_driver/features/auth/application/app_session_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final class SplashPage extends ConsumerStatefulWidget {
@@ -38,7 +39,32 @@ final class _SplashPageState extends ConsumerState<SplashPage> {
     }
 
     _navigated = true;
-    Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+    final session = ref.read(appSessionControllerProvider);
+
+    if (!session.onboardingCompleted) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+      return;
+    }
+
+    if (!session.isSignedIn) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.signIn);
+      return;
+    }
+
+    if (!session.profileCompleted) {
+      Navigator.of(context).pushReplacementNamed(
+        AppRoutes.completeProfile,
+        arguments: CompleteProfileRouteArgs(
+          prefilledName: session.userName,
+          email: session.email,
+          phoneNumber: session.phoneNumber,
+          shouldReturnToSignIn: false,
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
 
   @override

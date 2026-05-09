@@ -7,15 +7,30 @@ class ActiveOrderCard extends StatelessWidget {
     required this.orderId,
     required this.fromAddress,
     required this.toAddress,
-    required this.itemCount,
+    this.itemName = 'Delivery',
+    this.status = 'accepted',
     this.onViewDetails,
   });
 
   final String orderId;
   final String fromAddress;
   final String toAddress;
-  final int itemCount;
+  final String itemName;
+  final String status;
   final VoidCallback? onViewDetails;
+
+  String get _statusLabel {
+    switch (status.toLowerCase()) {
+      case 'picked_up':
+        return 'Picked Up';
+      case 'on_way':
+        return 'On The Way';
+      case 'delivered':
+        return 'Delivered';
+      default:
+        return 'Accepted';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,23 +47,31 @@ class ActiveOrderCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Order  $orderId',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.title,
+              Expanded(
+                child: Text(
+                  'Order  $orderId',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.title,
+                  ),
                 ),
               ),
+              const SizedBox(width: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFD6E4F0), // Light blue background
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'Accepted',
-                  style: TextStyle(
+                child: Text(
+                  _statusLabel,
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: AppColors.primary,
@@ -88,7 +111,9 @@ class ActiveOrderCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$itemCount BOOKS',
+                      itemName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.subtitle,
@@ -116,11 +141,7 @@ class ActiveOrderCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_forward,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
+                  Icon(Icons.arrow_forward, color: AppColors.primary, size: 20),
                 ],
               ),
             ),
@@ -158,10 +179,9 @@ class ActiveOrderCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 address,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.subtitle,
-                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13, color: AppColors.subtitle),
               ),
             ],
           ),
@@ -176,22 +196,10 @@ class ActiveOrderCard extends StatelessWidget {
       height: 30,
       child: Stack(
         children: [
-          Positioned(
-            right: 0,
-            child: _buildItemThumbnail(),
-          ),
-          Positioned(
-            right: 15,
-            child: _buildItemThumbnail(),
-          ),
-          Positioned(
-            right: 30,
-            child: _buildItemThumbnail(),
-          ),
-          Positioned(
-            right: 45,
-            child: _buildItemThumbnail(),
-          ),
+          Positioned(right: 0, child: _buildItemThumbnail()),
+          Positioned(right: 15, child: _buildItemThumbnail()),
+          Positioned(right: 30, child: _buildItemThumbnail()),
+          Positioned(right: 45, child: _buildItemThumbnail()),
         ],
       ),
     );

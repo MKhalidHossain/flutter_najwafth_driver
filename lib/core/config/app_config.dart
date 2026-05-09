@@ -33,7 +33,7 @@ final class AppConfig {
     if (dartDefineUrl.isNotEmpty) return dartDefineUrl;
 
     return defaultTargetPlatform == TargetPlatform.android
-        ? 'http://10.0.2.2:5001'
+        ? 'http://10.0.2.2:5000'
         : 'http://localhost:5001';
   }
 }
