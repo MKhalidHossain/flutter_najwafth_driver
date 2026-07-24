@@ -86,7 +86,7 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
     if (errorMessage != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(errorMessage))));
       return;
     }
 
@@ -95,6 +95,7 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isLoading = ref.watch(
       appSessionControllerProvider.select((s) => s.isLoading),
     );
@@ -110,25 +111,29 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
               const SizedBox(height: 34),
               DriverTextField(
                 controller: _emailController,
-                label: 'User Email',
-                hintText: 'Enter your Email',
+                label: l10n.tr('User Email'),
+                hintText: l10n.tr('Enter your Email'),
                 prefixIcon: Icons.mail_outline_rounded,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.email],
-                validator: Validators.email,
+                validator: (value) => Validators.email(value, l10n: l10n),
               ),
               const SizedBox(height: 20),
               DriverTextField(
                 controller: _passwordController,
-                label: 'Password',
-                hintText: 'Enter your Password',
+                label: l10n.tr('Password'),
+                hintText: l10n.tr('Enter your Password'),
                 prefixIcon: Icons.lock_outline_rounded,
                 obscureText: _obscurePassword,
                 textInputAction: TextInputAction.done,
                 autofillHints: const [AutofillHints.password],
-                validator: (value) =>
-                    Validators.minLength(value, 6, label: 'Password'),
+                validator: (value) => Validators.minLength(
+                  value,
+                  6,
+                  label: l10n.tr('Password'),
+                  l10n: l10n,
+                ),
                 onFieldSubmitted: (_) => _submit(),
                 suffixIcon: IconButton(
                   onPressed: () {
@@ -156,7 +161,7 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'Remember me',
+                    l10n.tr('Remember me'),
                     style: Theme.of(
                       context,
                     ).textTheme.titleLarge?.copyWith(color: AppColors.subtitle),
@@ -166,13 +171,13 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
                     onPressed: () {
                       Navigator.of(context).pushNamed(AppRoutes.forgotPassword);
                     },
-                    child: const Text('Forgot password?'),
+                    child: Text(l10n.tr('Forgot password?')),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
               DriverPrimaryButton(
-                label: 'Sign in',
+                label: l10n.tr('Sign in'),
                 onPressed: isLoading ? null : _submit,
                 isLoading: isLoading,
               ),
@@ -183,7 +188,7 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
                 spacing: 4,
                 children: [
                   Text(
-                    "Don't have an account?",
+                    l10n.tr("Don't have an account?"),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w500,
                       color: AppColors.title,
@@ -193,7 +198,7 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
                     onTap: () =>
                         Navigator.of(context).pushNamed(AppRoutes.signUp),
                     child: Text(
-                      'Sign Up Here',
+                      l10n.tr('Sign Up Here'),
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w500,
                         color: AppColors.link,

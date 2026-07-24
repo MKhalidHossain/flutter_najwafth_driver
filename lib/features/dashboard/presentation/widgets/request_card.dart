@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/core/utils/currency_formatter.dart';
 
 class RequestCard extends StatelessWidget {
@@ -82,7 +82,7 @@ class RequestCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Order #$orderId',
+              '${context.l10n.tr('Order')} #$orderId',
               style: const TextStyle(fontSize: 14, color: AppColors.subtitle),
             ),
             const SizedBox(height: 4),
@@ -113,18 +113,30 @@ class RequestCard extends StatelessWidget {
             if (_hasExtraDetails) ...[
               const SizedBox(height: 12),
               if (customerName != null && customerName!.isNotEmpty)
-                _RequestDetailLine(label: 'Customer', value: customerName!),
+                _RequestDetailLine(
+                  label: context.l10n.tr('Customer'),
+                  value: customerName!,
+                ),
               if (phone != null && phone!.isNotEmpty)
-                _RequestDetailLine(label: 'Phone', value: phone!),
+                _RequestDetailLine(
+                  label: context.l10n.tr('Phone'),
+                  value: phone!,
+                ),
               if (location != null && location!.isNotEmpty)
-                _RequestDetailLine(label: 'Location', value: location!),
+                _RequestDetailLine(
+                  label: context.l10n.tr('Location'),
+                  value: location!,
+                ),
               if (totalAmount != null)
                 _RequestDetailLine(
-                  label: 'Total',
+                  label: context.l10n.tr('Total'),
                   value: formatCurrency(totalAmount!),
                 ),
               if (message != null && message!.isNotEmpty)
-                _RequestDetailLine(label: 'Message', value: message!),
+                _RequestDetailLine(
+                  label: context.l10n.tr('Message'),
+                  value: message!,
+                ),
             ],
             const SizedBox(height: 16),
             Row(
@@ -141,9 +153,9 @@ class RequestCard extends StatelessWidget {
                     ),
                     child: isRejectLoading
                         ? const _ButtonSpinner(color: AppColors.primary)
-                        : const Text(
-                            'Reject',
-                            style: TextStyle(
+                        : Text(
+                            context.l10n.tr('Reject'),
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.title,
@@ -164,9 +176,9 @@ class RequestCard extends StatelessWidget {
                     ),
                     child: isAcceptLoading
                         ? const _ButtonSpinner(color: Colors.white)
-                        : const Text(
-                            'Accept',
-                            style: TextStyle(
+                        : Text(
+                            context.l10n.tr('Accept'),
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),

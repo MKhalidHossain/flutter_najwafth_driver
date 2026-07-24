@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 
 class CustomToggleSwitch extends StatelessWidget {
   const CustomToggleSwitch({
@@ -35,7 +35,7 @@ class CustomToggleSwitch extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                isOnline ? "You're Online" : "You're Offline",
+                context.l10n.tr(isOnline ? "You're Online" : "You're Offline"),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,

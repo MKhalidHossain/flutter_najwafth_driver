@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/notifications/data/notification_api.dart';
 import 'package:flutter_najwafth_driver/features/notifications/domain/app_notification.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -98,7 +98,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       setState(() => _isLoadingMore = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
       return;
     }
 
@@ -137,7 +137,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       setState(() => _notifications[index] = notification);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
       return;
     }
 
@@ -178,7 +178,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
     }
   }
 
@@ -197,9 +197,9 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Notifications',
-          style: TextStyle(
+        title: Text(
+          context.l10n.tr('Notifications'),
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: AppColors.title,
@@ -209,7 +209,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
           if (_notifications.any((notification) => !notification.isRead))
             TextButton(
               onPressed: _markAllAsRead,
-              child: const Text('Mark All'),
+              child: Text(context.l10n.tr('Mark All')),
             ),
         ],
       ),
@@ -234,12 +234,12 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
         onRefresh: () => _loadNotifications(refresh: true),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          children: const [
-            SizedBox(height: 180),
+          children: [
+            const SizedBox(height: 180),
             Center(
               child: Text(
-                'No notifications yet.',
-                style: TextStyle(color: AppColors.subtitle),
+                context.l10n.tr('No notifications yet.'),
+                style: const TextStyle(color: AppColors.subtitle),
               ),
             ),
           ],
@@ -261,7 +261,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           if (newNotifications.isNotEmpty) ...[
-            const _SectionHeader(title: 'New'),
+            _SectionHeader(title: context.l10n.tr('New')),
             for (final notification in newNotifications)
               _buildNotificationItem(
                 notification: notification,
@@ -269,11 +269,11 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
               ),
           ],
           if (earlierNotifications.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 30, 20, 10),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 30, 20, 10),
               child: Text(
-                'Earlier',
-                style: TextStyle(
+                context.l10n.tr('Earlier'),
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.title,
@@ -375,8 +375,8 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   }
 
   String _notificationText(AppNotification notification) {
-    final title = notification.title.trim();
-    final message = notification.message.trim();
+    final title = context.l10n.tr(notification.title.trim());
+    final message = context.l10n.tr(notification.message.trim());
 
     if (title.isEmpty) return message;
     if (message.isEmpty) return title;
@@ -387,11 +387,19 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     if (createdAt == null) return '';
 
     final difference = DateTime.now().difference(createdAt.toLocal());
-    if (difference.inMinutes < 1) return 'now';
-    if (difference.inMinutes < 60) return '${difference.inMinutes} min';
-    if (difference.inHours < 24) return '${difference.inHours} hr';
-    if (difference.inDays < 7) return '${difference.inDays} d';
-    return '${createdAt.toLocal().month}/${createdAt.toLocal().day}';
+    if (difference.inMinutes < 1) return context.l10n.tr('now');
+    if (difference.inMinutes < 60) {
+      return context.l10n.minutesAgo(difference.inMinutes);
+    }
+    if (difference.inHours < 24) {
+      return context.l10n.hoursAgo(difference.inHours);
+    }
+    if (difference.inDays < 7) {
+      return context.l10n.daysAgo(difference.inDays);
+    }
+    return MaterialLocalizations.of(
+      context,
+    ).formatShortDate(createdAt.toLocal());
   }
 }
 
@@ -436,7 +444,10 @@ class _ErrorState extends StatelessWidget {
               style: const TextStyle(color: AppColors.subtitle),
             ),
             const SizedBox(height: 12),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            TextButton(
+              onPressed: onRetry,
+              child: Text(context.l10n.tr('Retry')),
+            ),
           ],
         ),
       ),

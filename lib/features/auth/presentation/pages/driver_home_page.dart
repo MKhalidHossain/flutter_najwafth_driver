@@ -8,10 +8,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final class DriverHomePage extends ConsumerWidget {
   const DriverHomePage({super.key});
 
-  String _vehicleLabel(DriverVehicleType type) {
+  String _vehicleLabel(BuildContext context, DriverVehicleType type) {
     return switch (type) {
-      DriverVehicleType.bike => 'Bike courier',
-      DriverVehicleType.electricBike => 'Electric bike courier',
+      DriverVehicleType.bike => context.l10n.tr('Bike courier'),
+      DriverVehicleType.electricBike => context.l10n.tr(
+        'Electric bike courier',
+      ),
     };
   }
 
@@ -45,9 +47,9 @@ final class DriverHomePage extends ConsumerWidget {
                     ),
                   );
                 },
-                child: const Text(
-                  'Sign out',
-                  style: TextStyle(
+                child: Text(
+                  context.l10n.tr('Sign out'),
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w500,
                     color: AppColors.link,
@@ -58,15 +60,15 @@ final class DriverHomePage extends ConsumerWidget {
           ),
           const SizedBox(height: 34),
           Text(
-            'Welcome back, ${session.userName ?? 'Driver'}',
+            '${context.l10n.tr('Welcome Back!')} ${session.userName ?? context.l10n.tr('Driver')}',
             style: Theme.of(
               context,
             ).textTheme.headlineMedium?.copyWith(fontSize: 34),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Your onboarding and driver profile are ready. This page gives you a simple working destination after sign-in while you connect the real backend later.',
-            style: TextStyle(
+          Text(
+            context.l10n.tr('Your onboarding and driver profile are ready.'),
+            style: const TextStyle(
               fontSize: 18,
               height: 1.5,
               color: AppColors.subtitle,
@@ -75,30 +77,30 @@ final class DriverHomePage extends ConsumerWidget {
           const SizedBox(height: 28),
           _InfoCard(
             icon: Icons.email_outlined,
-            title: 'Email',
-            value: session.email ?? 'Not available',
+            title: context.l10n.tr('Email'),
+            value: session.email ?? context.l10n.tr('Not available'),
           ),
           const SizedBox(height: 16),
           _InfoCard(
             icon: Icons.two_wheeler_rounded,
-            title: 'Vehicle',
-            value: _vehicleLabel(session.vehicleType),
+            title: context.l10n.tr('Vehicle'),
+            value: _vehicleLabel(context, session.vehicleType),
           ),
           const SizedBox(height: 16),
           _InfoCard(
             icon: Icons.badge_outlined,
-            title: 'Driver ID',
-            value: session.driverId ?? 'Pending',
+            title: context.l10n.tr('Driver ID'),
+            value: session.driverId ?? context.l10n.tr('Pending'),
           ),
           const SizedBox(height: 16),
           _InfoCard(
             icon: Icons.verified_user_outlined,
-            title: 'Status',
-            value: session.entrepreneurStatus ?? 'Pending',
+            title: context.l10n.tr('Status'),
+            value: session.entrepreneurStatus ?? context.l10n.tr('Pending'),
           ),
           const SizedBox(height: 30),
           DriverPrimaryButton(
-            label: 'Edit Profile Again',
+            label: context.l10n.tr('Edit Profile Again'),
             onPressed: () {
               Navigator.of(context).pushNamed(
                 AppRoutes.completeProfile,

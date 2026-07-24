@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
-import 'package:flutter_najwafth_driver/core/errors/app_failure.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/widgets/active_order_card.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/data/driver_api.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/domain/driver_request.dart';
@@ -100,9 +99,9 @@ class _ActiveTabState extends ConsumerState<ActiveTab> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Active Orders',
-          style: TextStyle(
+        title: Text(
+          context.l10n.tr('Active Orders'),
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: AppColors.title,
@@ -151,19 +150,19 @@ class _ActiveTabState extends ConsumerState<ActiveTab> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'No active orders',
-                style: TextStyle(
+              Text(
+                context.l10n.tr('No active orders'),
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                   color: AppColors.title,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Accept a delivery request to see\nit here.',
+              Text(
+                context.l10n.tr('Accept a delivery request to see\nit here.'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: AppColors.subtitle),
+                style: const TextStyle(fontSize: 14, color: AppColors.subtitle),
               ),
             ],
           ),
@@ -193,7 +192,7 @@ class _ActiveTabState extends ConsumerState<ActiveTab> {
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: _loadActiveOrders,
-                child: const Text('Retry'),
+                child: Text(context.l10n.tr('Retry')),
               ),
             ],
           ),
@@ -213,16 +212,18 @@ class _ActiveTabState extends ConsumerState<ActiveTab> {
             : request.id;
         final fromAddress = request.shopName.isNotEmpty
             ? request.shopName
-            : 'Unknown Shop';
+            : context.l10n.tr('Unknown Shop');
         final toAddress = request.location.isNotEmpty
             ? request.location
-            : 'Unknown Location';
+            : context.l10n.tr('Unknown Location');
 
         return ActiveOrderCard(
           orderId: orderId,
           fromAddress: fromAddress,
           toAddress: toAddress,
-          itemName: request.item.isNotEmpty ? request.item : 'Delivery',
+          itemName: request.item.isNotEmpty
+              ? request.item
+              : context.l10n.tr('Delivery'),
           status: request.status,
           onViewDetails: () => _openRequestDetails(request.id),
         );

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 
 class ActiveOrderCard extends StatelessWidget {
   const ActiveOrderCard({
@@ -19,16 +19,18 @@ class ActiveOrderCard extends StatelessWidget {
   final String status;
   final VoidCallback? onViewDetails;
 
-  String get _statusLabel {
+  String _statusLabel(BuildContext context) {
     switch (status.toLowerCase()) {
+      case 'processing':
       case 'picked_up':
-        return 'Picked Up';
+        return context.l10n.tr('Picked Up');
+      case 'picked':
       case 'on_way':
-        return 'On The Way';
+        return context.l10n.tr('On The Way');
       case 'delivered':
-        return 'Delivered';
+        return context.l10n.tr('Delivered');
       default:
-        return 'Accepted';
+        return context.l10n.tr('Accepted');
     }
   }
 
@@ -49,7 +51,7 @@ class ActiveOrderCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Order  $orderId',
+                  '${context.l10n.tr('Order')}  $orderId',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -70,7 +72,7 @@ class ActiveOrderCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  _statusLabel,
+                  _statusLabel(context),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -81,9 +83,9 @@ class ActiveOrderCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildLocationRow('From:', fromAddress),
+          _buildLocationRow(context.l10n.tr('From:'), fromAddress),
           const SizedBox(height: 12),
-          _buildLocationRow('To:', toAddress),
+          _buildLocationRow(context.l10n.tr('To:'), toAddress),
           const SizedBox(height: 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,9 +103,9 @@ class ActiveOrderCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Order Items',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.tr('Order Items'),
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: AppColors.title,
@@ -129,19 +131,23 @@ class ActiveOrderCard extends StatelessWidget {
           Center(
             child: InkWell(
               onTap: onViewDetails,
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'View Details',
-                    style: TextStyle(
+                    context.l10n.tr('View Details'),
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color: AppColors.primary,
                     ),
                   ),
-                  SizedBox(width: 4),
-                  Icon(Icons.arrow_forward, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 4),
+                  const Icon(
+                    Icons.arrow_forward,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
                 ],
               ),
             ),

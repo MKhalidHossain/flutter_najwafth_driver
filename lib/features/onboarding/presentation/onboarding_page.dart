@@ -16,27 +16,31 @@ final class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   late final PageController _pageController;
   int _currentIndex = 0;
 
-  final List<_OnboardingSlide> _slides = const [
+  List<_OnboardingSlide> get _slides => [
     _OnboardingSlide(
       assetPath: 'assets/images/onboarding_books.png',
-      title: 'Deliver Books, Earn More',
-      description:
-          'Join our network of drivers delivering knowledge across the city.',
+      title: context.l10n.tr('Deliver Books, Earn More'),
+      description: context.l10n.tr(
+        'Join our network of drivers delivering knowledge across the city.',
+      ),
       imageWidthFactor: 0.86,
       descriptionMaxWidth: 320,
     ),
     _OnboardingSlide(
       assetPath: 'assets/images/onboarding_earnings.png',
-      title: 'Track Your Earnings',
-      description: 'See your daily earnings and delivery history in real-time.',
+      title: context.l10n.tr('Track Your Earnings'),
+      description: context.l10n.tr(
+        'See your daily earnings and delivery history in real-time.',
+      ),
       imageWidthFactor: 0.84,
       descriptionMaxWidth: 330,
     ),
     _OnboardingSlide(
       assetPath: 'assets/images/onboarding_navigation.png',
-      title: 'Easy Navigation',
-      description:
-          'Built-in maps and optimized routes to make your deliveries smooth.',
+      title: context.l10n.tr('Easy Navigation'),
+      description: context.l10n.tr(
+        'Built-in maps and optimized routes to make your deliveries smooth.',
+      ),
       imageWidthFactor: 1,
       descriptionMaxWidth: 335,
     ),
@@ -145,9 +149,9 @@ final class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 const Spacer(),
                 TextButton(
                   onPressed: _skipOnboarding,
-                  child: const Text(
-                    'Skip',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.tr('Skip'),
+                    style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w400,
                       color: AppColors.title,
@@ -210,8 +214,8 @@ final class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             SizedBox(height: compact ? 24 : 28),
             DriverPrimaryButton(
               label: _currentIndex == _slides.length - 1
-                  ? 'Let’s Get Started'
-                  : 'Next',
+                  ? context.l10n.tr('Let’s Get Started')
+                  : context.l10n.tr('Next'),
               onPressed: _goNext,
             ),
             const SizedBox(height: 6),

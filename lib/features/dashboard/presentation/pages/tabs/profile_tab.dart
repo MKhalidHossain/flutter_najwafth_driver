@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
-import 'package:flutter_najwafth_driver/core/errors/app_failure.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/auth/application/app_session_controller.dart';
 import 'package:flutter_najwafth_driver/features/notifications/data/notification_api.dart';
 import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
@@ -57,7 +56,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     final session = ref.watch(appSessionControllerProvider);
     final displayName = _profile?.name.isNotEmpty == true
         ? _profile!.name
-        : session.userName ?? 'Driver';
+        : session.userName ?? context.l10n.tr('Driver');
     final email = _profile?.email.isNotEmpty == true
         ? _profile!.email
         : session.email;
@@ -99,8 +98,8 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     final backendVehicleType = _readVehicleType(_profile?.vehicleType);
     final vehicleType = backendVehicleType ?? session.vehicleType;
     final vehicleLabel = vehicleType == DriverVehicleType.electricBike
-        ? 'E-Bike'
-        : 'Bike';
+        ? context.l10n.tr('Electric Bike')
+        : context.l10n.tr('Bike');
     final vehicleIcon = vehicleType == DriverVehicleType.electricBike
         ? Icons.electric_bike
         : Icons.directions_bike;
@@ -248,11 +247,11 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
               children: [
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Center(
                         child: Text(
-                          'Driver Details',
-                          style: TextStyle(
+                          context.l10n.tr('Driver Details'),
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary,
@@ -261,7 +260,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Edit driver details',
+                      tooltip: context.l10n.tr('Edit driver details'),
                       onPressed: () async {
                         await Navigator.pushNamed(
                           context,
@@ -287,18 +286,24 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _DriverDetailLine(
-                            label: 'Vehicle',
+                            label: context.l10n.tr('Vehicle'),
                             value: vehicleLabel,
                           ),
                           const SizedBox(height: 12),
-                          _DriverDetailLine(label: 'ID', value: driverId),
+                          _DriverDetailLine(
+                            label: context.l10n.tr('ID'),
+                            value: driverId,
+                          ),
                           const SizedBox(height: 12),
                           _DriverDetailLine(
-                            label: 'Status',
+                            label: context.l10n.tr('Status'),
                             value: entrepreneurStatus,
                           ),
                           const SizedBox(height: 12),
-                          _DriverDetailLine(label: 'Plate', value: plateNumber),
+                          _DriverDetailLine(
+                            label: context.l10n.tr('Plate'),
+                            value: plateNumber,
+                          ),
                         ],
                       ),
                     ),
@@ -364,7 +369,10 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           ),
           TextButton(
             onPressed: _loadProfile,
-            child: const Text('Retry', style: TextStyle(fontSize: 13)),
+            child: Text(
+              context.l10n.tr('Retry'),
+              style: const TextStyle(fontSize: 13),
+            ),
           ),
         ],
       ),
@@ -376,43 +384,43 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
       children: [
         _buildMenuItem(
           icon: Icons.edit_outlined,
-          title: 'Edit Profile',
+          title: context.l10n.tr('Edit Profile'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
         ),
         _buildMenuItem(
           icon: Icons.lock_outline,
-          title: 'Change Password',
+          title: context.l10n.tr('Change Password'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.changePassword),
         ),
         _buildMenuItem(
           icon: Icons.info_outline,
-          title: 'About App',
+          title: context.l10n.tr('About App'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.aboutApp),
         ),
         _buildMenuItem(
           icon: Icons.description_outlined,
-          title: 'Privacy Policy',
+          title: context.l10n.tr('Privacy Policy'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.privacyPolicy),
         ),
         _buildMenuItem(
           icon: Icons.block,
-          title: 'Terms & Conditions',
+          title: context.l10n.tr('Terms & Conditions'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.termsConditions),
         ),
         _buildMenuItem(
           icon: Icons.language,
-          title: 'Choose Language',
+          title: context.l10n.tr('Choose Language'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.chooseLanguage),
         ),
         _buildMenuItem(
           icon: Icons.notifications_none,
-          title: 'Notifications',
+          title: context.l10n.tr('Notifications'),
           trailing: _NotificationTrailing(count: _unreadNotificationCount),
           onTap: () => Navigator.pushNamed(context, AppRoutes.notifications),
         ),
         _buildMenuItem(
           icon: Icons.logout,
-          title: 'Log Out',
+          title: context.l10n.tr('Log Out'),
           titleColor: AppColors.primary,
           iconColor: AppColors.primary,
           onTap: () => _showLogoutDialog(context),
@@ -442,9 +450,9 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Are you sure to log out?',
-                  style: TextStyle(
+                Text(
+                  context.l10n.tr('Are you sure you want to log out?'),
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: AppColors.title,
@@ -463,9 +471,9 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
+                        child: Text(
+                          context.l10n.tr('Cancel'),
+                          style: const TextStyle(
                             color: AppColors.primary,
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -645,9 +653,9 @@ class _LogoutButtonState extends State<_LogoutButton> {
                 color: Colors.white,
               ),
             )
-          : const Text(
-              'Log Out',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          : Text(
+              context.l10n.tr('Log Out'),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
     );
   }
