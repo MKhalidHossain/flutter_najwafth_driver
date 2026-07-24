@@ -19,6 +19,8 @@ class EditProfilePage extends ConsumerStatefulWidget {
 }
 
 class _EditProfilePageState extends ConsumerState<EditProfilePage> {
+  static const _genderOptions = ['Male', 'Female', 'Other'];
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -36,6 +38,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   String? _errorMessage;
   String? _avatarUrl;
   XFile? _selectedAvatar;
+  String? _selectedGender;
   late DriverVehicleType _vehicleType;
 
   @override
@@ -90,7 +93,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _emailController.text = profile.email;
     _phoneController.text = profile.phone;
     _bioController.text = profile.bio;
-    _genderController.text = profile.gender ?? '';
+    _selectedGender = _readGender(profile.gender);
+    _genderController.text = _selectedGender ?? '';
     _dobController.text = profile.dob?.toIso8601String().split('T').first ?? '';
     _ageController.text = profile.age?.toString() ?? '';
     _addressController.text = profile.address;
@@ -237,6 +241,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     };
   }
 
+  String? _readGender(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) return null;
+
+    for (final option in _genderOptions) {
+      if (option.toLowerCase() == normalized) return option;
+    }
+
+    return 'Other';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -346,10 +361,30 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               decoration: const InputDecoration(hintText: 'Bio'),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _genderController,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Gender'),
+            ButtonTheme(
+              alignedDropdown: true,
+              child: DropdownButtonFormField<String>(
+                initialValue: _selectedGender,
+                isExpanded: true,
+                borderRadius: BorderRadius.circular(14),
+                dropdownColor: Colors.white,
+                decoration: const InputDecoration(hintText: 'Gender'),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                items: _genderOptions
+                    .map(
+                      (gender) => DropdownMenuItem<String>(
+                        value: gender,
+                        child: Text(gender),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedGender = value;
+                    _genderController.text = value ?? '';
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -377,22 +412,29 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               decoration: const InputDecoration(hintText: 'Address'),
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<DriverVehicleType>(
-              initialValue: _vehicleType,
-              decoration: const InputDecoration(hintText: 'Vehicle Type'),
-              items: const [
-                DropdownMenuItem(
-                  value: DriverVehicleType.bike,
-                  child: Text('Bike'),
-                ),
-                DropdownMenuItem(
-                  value: DriverVehicleType.electricBike,
-                  child: Text('Electric Bike'),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) setState(() => _vehicleType = value);
-              },
+            ButtonTheme(
+              alignedDropdown: true,
+              child: DropdownButtonFormField<DriverVehicleType>(
+                initialValue: _vehicleType,
+                isExpanded: true,
+                borderRadius: BorderRadius.circular(14),
+                dropdownColor: Colors.white,
+                decoration: const InputDecoration(hintText: 'Vehicle Type'),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                items: const [
+                  DropdownMenuItem(
+                    value: DriverVehicleType.bike,
+                    child: Text('Bike'),
+                  ),
+                  DropdownMenuItem(
+                    value: DriverVehicleType.electricBike,
+                    child: Text('Electric Bike'),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => _vehicleType = value);
+                },
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
