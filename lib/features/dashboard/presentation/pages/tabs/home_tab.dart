@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
-import 'package:flutter_najwafth_driver/core/errors/app_failure.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/core/utils/currency_formatter.dart';
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/widgets/custom_toggle_switch.dart';
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/widgets/request_card.dart';
@@ -115,7 +114,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   Future<void> _acceptRequest(String driverRequestId) async {
     final driverId = _profile?.id;
     if (driverId == null || driverId.isEmpty) {
-      _showLifecycleMessage('Driver profile is not loaded yet.');
+      _showLifecycleMessage(
+        context.l10n.tr('Driver profile is not loaded yet.'),
+      );
       return;
     }
     if (_acceptingRequestIds.contains(driverRequestId)) return;
@@ -154,7 +155,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     }
 
     _removeRequestFromNewList(driverRequestId);
-    _showLifecycleMessage('Request accepted.');
+    _showLifecycleMessage(context.l10n.tr('Request accepted.'));
   }
 
   Future<void> _rejectRequest(String driverRequestId) async {
@@ -180,7 +181,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     }
 
     _removeRequestFromNewList(driverRequestId);
-    _showLifecycleMessage('Request rejected.');
+    _showLifecycleMessage(context.l10n.tr('Request rejected.'));
   }
 
   void _removeRequestFromNewList(String driverRequestId) {
@@ -218,7 +219,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                       Text(
                         _profile?.name.isNotEmpty == true
                             ? _profile!.name
-                            : 'Driver',
+                            : context.l10n.tr('Driver'),
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 18,
@@ -227,7 +228,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                         ),
                       ),
                       Text(
-                        'Hi, Good Morning',
+                        context.l10n.tr('Hi, Good Morning'),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
@@ -320,21 +321,27 @@ class _HomeTabState extends ConsumerState<HomeTab> {
           ),
         ),
         const SizedBox(height: 32),
-        const Text(
-          'Go online to start',
-          style: TextStyle(
+        Text(
+          context.l10n.tr('Go online to start'),
+          style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w700,
             color: AppColors.title,
           ),
         ),
         const SizedBox(height: 12),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text(
-            'You need to be online to receive new delivery requests.',
+            context.l10n.tr(
+              'You need to be online to receive new delivery requests.',
+            ),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, height: 1.5, color: AppColors.title),
+            style: const TextStyle(
+              fontSize: 16,
+              height: 1.5,
+              color: AppColors.title,
+            ),
           ),
         ),
         const SizedBox(height: 48),
@@ -348,9 +355,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'Go Online',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            child: Text(
+              context.l10n.tr('Go Online'),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
         ),
@@ -392,27 +399,32 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             Expanded(
               child: _buildStatCard(
                 formatWholeCurrency(todayEarnings),
-                "Today's Earnings",
+                context.l10n.tr("Today's Earnings"),
               ),
             ),
             const SizedBox(width: 16),
-            Expanded(child: _buildStatCard('$deliveries', 'Deliveries')),
+            Expanded(
+              child: _buildStatCard(
+                '$deliveries',
+                context.l10n.tr('Deliveries'),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 24),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'New Requests',
-              style: TextStyle(
+            Text(
+              context.l10n.tr('New Requests'),
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: AppColors.title,
               ),
             ),
             Text(
-              '${_driverRequests.length} pending',
+              context.l10n.pendingRequests(_driverRequests.length),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -440,8 +452,10 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       orderId: orderId,
       storeName: request.shopName.isNotEmpty
           ? request.shopName
-          : 'Unknown Shop',
-      itemName: request.item.isNotEmpty ? request.item : 'Delivery request',
+          : context.l10n.tr('Unknown Shop'),
+      itemName: request.item.isNotEmpty
+          ? request.item
+          : context.l10n.tr('Delivery request'),
       price: request.price ?? 0,
       address: pickup.isNotEmpty ? pickup : request.location,
       phone: request.phone,
@@ -483,7 +497,10 @@ class _HomeTabState extends ConsumerState<HomeTab> {
               style: const TextStyle(fontSize: 15, color: AppColors.title),
             ),
             const SizedBox(height: 20),
-            FilledButton(onPressed: _loadHomeData, child: const Text('Retry')),
+            FilledButton(
+              onPressed: _loadHomeData,
+              child: Text(context.l10n.tr('Retry')),
+            ),
           ],
         ),
       ),
@@ -498,23 +515,23 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.inbox_outlined, size: 42, color: AppColors.subtitle),
-          SizedBox(height: 12),
+          const Icon(Icons.inbox_outlined, size: 42, color: AppColors.subtitle),
+          const SizedBox(height: 12),
           Text(
-            'No new delivery requests',
-            style: TextStyle(
+            context.l10n.tr('No new delivery requests'),
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.title,
             ),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           Text(
-            'Pull down to refresh when you are online.',
+            context.l10n.tr('Pull down to refresh when you are online.'),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: AppColors.subtitle),
+            style: const TextStyle(fontSize: 14, color: AppColors.subtitle),
           ),
         ],
       ),

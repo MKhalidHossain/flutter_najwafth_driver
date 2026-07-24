@@ -38,11 +38,17 @@ final class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   }
 
   String? _validateConfirmPassword(String? value) {
-    final error = Validators.minLength(value, 6, label: 'Confirm password');
+    final l10n = context.l10n;
+    final error = Validators.minLength(
+      value,
+      6,
+      label: l10n.tr('Confirm Password'),
+      l10n: l10n,
+    );
     if (error != null) return error;
 
     if (value!.trim() != _newPasswordController.text.trim()) {
-      return 'Passwords do not match.';
+      return l10n.tr('Passwords do not match.');
     }
     return null;
   }
@@ -67,7 +73,7 @@ final class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
     if (failure != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
       return;
     }
 
@@ -76,13 +82,16 @@ final class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
       (route) => false,
       arguments: SignInRouteArgs(
         prefilledEmail: widget.email,
-        successMessage: 'Password updated. Sign in with your new password.',
+        successMessage: context.l10n.tr(
+          'Password updated. Sign in with your new password.',
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return DriverScaffold(
       child: Form(
         key: _formKey,
@@ -91,21 +100,25 @@ final class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
             const SizedBox(height: 72),
             const DriverBrandHeader(width: 240),
             const SizedBox(height: 24),
-            const DriverIntro(
-              title: 'Reset New password',
-              subtitle: 'Enter your new password and confirm password',
+            DriverIntro(
+              title: l10n.tr('Reset New password'),
+              subtitle: l10n.tr('Enter your new password and confirm password'),
               centered: true,
             ),
             const SizedBox(height: 24),
             DriverTextField(
               controller: _newPasswordController,
-              label: 'New Password',
-              hintText: 'Enter your Password',
+              label: l10n.tr('New Password'),
+              hintText: l10n.tr('Enter your Password'),
               prefixIcon: Icons.lock_outline_rounded,
               obscureText: _obscureNewPassword,
               textInputAction: TextInputAction.next,
-              validator: (value) =>
-                  Validators.minLength(value, 6, label: 'New password'),
+              validator: (value) => Validators.minLength(
+                value,
+                6,
+                label: l10n.tr('New Password'),
+                l10n: l10n,
+              ),
               suffixIcon: IconButton(
                 onPressed: () {
                   setState(() => _obscureNewPassword = !_obscureNewPassword);
@@ -120,8 +133,8 @@ final class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
             const SizedBox(height: 20),
             DriverTextField(
               controller: _confirmPasswordController,
-              label: 'Confirm Password',
-              hintText: 'Enter Confirm Password',
+              label: l10n.tr('Confirm Password'),
+              hintText: l10n.tr('Enter Confirm Password'),
               prefixIcon: Icons.lock_outline_rounded,
               obscureText: _obscureConfirmPassword,
               textInputAction: TextInputAction.done,
@@ -142,7 +155,7 @@ final class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
             ),
             const SizedBox(height: 24),
             DriverPrimaryButton(
-              label: 'Continue',
+              label: l10n.tr('Continue'),
               onPressed: _isLoading ? null : _submit,
               isLoading: _isLoading,
             ),

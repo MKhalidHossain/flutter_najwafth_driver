@@ -3,8 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
-import 'package:flutter_najwafth_driver/core/utils/validators.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/auth/application/app_session_controller.dart';
 import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
 import 'package:flutter_najwafth_driver/features/user/domain/user_profile.dart';
@@ -106,7 +105,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         : DateTime(profile.dob!.year, profile.dob!.month, profile.dob!.day);
     _dobController.text = _selectedDob == null
         ? ''
-        : DateFormat('dd MMM yyyy').format(_selectedDob!);
+        : DateFormat.yMMMd(
+            Localizations.localeOf(context).toLanguageTag(),
+          ).format(_selectedDob!);
     _ageController.text = _selectedDob == null
         ? profile.age?.toString() ?? ''
         : _calculateAge(_selectedDob!).toString();
@@ -165,7 +166,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
       return;
     }
 
@@ -196,7 +197,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated successfully.')),
+      SnackBar(content: Text(context.l10n.tr('Profile updated successfully.'))),
     );
     Navigator.pop(context);
   }
@@ -224,15 +225,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     } on MissingPluginException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Image picker is not ready. Please rebuild the app.'),
+        SnackBar(
+          content: Text(
+            context.l10n.tr(
+              'Image picker is not ready. Please rebuild the app.',
+            ),
+          ),
         ),
       );
     } on Object {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Could not pick image.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.tr('Could not pick image.'))),
+      );
     } finally {
       if (mounted) setState(() => _isPickingAvatar = false);
     }
@@ -242,18 +247,24 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     final code = error.code.toLowerCase();
     final message = error.message?.toLowerCase() ?? '';
     if (code.contains('denied') || message.contains('denied')) {
-      return 'Photo access is denied. Enable Photos permission in Settings.';
+      return context.l10n.tr(
+        'Photo access is denied. Enable Photos permission in Settings.',
+      );
     }
-    if (code == 'already_active') return 'Image picker is already open.';
+    if (code == 'already_active') {
+      return context.l10n.tr('Image picker is already open.');
+    }
     if (code.contains('plugin') ||
         message.contains('missingplugin') ||
         message.contains('unable to establish connection on channel') ||
         message.contains('image_picker_ios')) {
-      return 'Image picker is not ready. Please rebuild the app.';
+      return context.l10n.tr(
+        'Image picker is not ready. Please rebuild the app.',
+      );
     }
     return error.message?.isNotEmpty == true
         ? error.message!
-        : 'Could not pick image.';
+        : context.l10n.tr('Could not pick image.');
   }
 
   Future<void> _selectDateOfBirth() async {
@@ -267,16 +278,18 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       firstDate: DateTime(1900),
       lastDate: today,
       initialDatePickerMode: DatePickerMode.year,
-      helpText: 'Select date of birth',
-      cancelText: 'Cancel',
-      confirmText: 'Select',
+      helpText: context.l10n.tr('Select date of birth'),
+      cancelText: context.l10n.tr('Cancel'),
+      confirmText: context.l10n.tr('Select'),
     );
 
     if (selectedDate == null || !mounted) return;
 
     setState(() {
       _selectedDob = DateUtils.dateOnly(selectedDate);
-      _dobController.text = DateFormat('dd MMM yyyy').format(_selectedDob!);
+      _dobController.text = DateFormat.yMMMd(
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(_selectedDob!);
       _ageController.text = _calculateAge(_selectedDob!).toString();
     });
   }
@@ -315,6 +328,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -328,9 +342,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(
+        title: Text(
+          l10n.tr('Edit Profile'),
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: AppColors.title,
@@ -346,6 +360,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   Widget _buildForm() {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Form(
@@ -398,28 +413,36 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             TextFormField(
               controller: _nameController,
               textInputAction: TextInputAction.next,
-              validator: (value) => Validators.required(value, label: 'Name'),
-              decoration: const InputDecoration(hintText: 'Name'),
+              validator: (value) => Validators.required(
+                value,
+                label: l10n.tr('Name'),
+                l10n: l10n,
+              ),
+              decoration: InputDecoration(hintText: l10n.tr('Name')),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _emailController,
               readOnly: true,
-              decoration: const InputDecoration(hintText: 'Email'),
+              decoration: InputDecoration(hintText: l10n.tr('Email')),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               textInputAction: TextInputAction.next,
-              validator: (value) => Validators.required(value, label: 'Phone'),
-              decoration: const InputDecoration(hintText: 'Phone'),
+              validator: (value) => Validators.required(
+                value,
+                label: l10n.tr('Phone'),
+                l10n: l10n,
+              ),
+              decoration: InputDecoration(hintText: l10n.tr('Phone')),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _bioController,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Bio'),
+              decoration: InputDecoration(hintText: l10n.tr('Bio')),
             ),
             const SizedBox(height: 16),
             ButtonTheme(
@@ -429,13 +452,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 isExpanded: true,
                 borderRadius: BorderRadius.circular(14),
                 dropdownColor: Colors.white,
-                decoration: const InputDecoration(hintText: 'Gender'),
+                decoration: InputDecoration(hintText: l10n.tr('Gender')),
                 icon: const Icon(Icons.keyboard_arrow_down_rounded),
                 items: _genderOptions
                     .map(
                       (gender) => DropdownMenuItem<String>(
                         value: gender,
-                        child: Text(gender),
+                        child: Text(l10n.tr(gender)),
                       ),
                     )
                     .toList(),
@@ -453,9 +476,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               readOnly: true,
               canRequestFocus: false,
               onTap: _selectDateOfBirth,
-              decoration: const InputDecoration(
-                hintText: 'Date of Birth',
-                suffixIcon: Icon(Icons.calendar_month_outlined),
+              decoration: InputDecoration(
+                hintText: l10n.tr('Date of Birth'),
+                suffixIcon: const Icon(Icons.calendar_month_outlined),
               ),
             ),
             const SizedBox(height: 16),
@@ -463,32 +486,36 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               controller: _ageController,
               readOnly: true,
               canRequestFocus: false,
-              decoration: const InputDecoration(
-                hintText: 'Age',
-                suffixIcon: Icon(Icons.cake_outlined),
+              decoration: InputDecoration(
+                hintText: l10n.tr('Age'),
+                suffixIcon: const Icon(Icons.cake_outlined),
               ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _addressController,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Address'),
+              decoration: InputDecoration(hintText: l10n.tr('Address')),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _driverIdController,
               textInputAction: TextInputAction.next,
-              validator: (value) => Validators.required(value, label: 'ID'),
-              decoration: const InputDecoration(hintText: 'ID'),
+              validator: (value) =>
+                  Validators.required(value, label: l10n.tr('ID'), l10n: l10n),
+              decoration: InputDecoration(hintText: l10n.tr('ID')),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _entrepreneurStatusController,
               textInputAction: TextInputAction.next,
-              validator: (value) =>
-                  Validators.required(value, label: 'Entrepreneur status'),
-              decoration: const InputDecoration(
-                hintText: 'Entrepreneur Status',
+              validator: (value) => Validators.required(
+                value,
+                label: l10n.tr('Entrepreneur status'),
+                l10n: l10n,
+              ),
+              decoration: InputDecoration(
+                hintText: l10n.tr('Entrepreneur Status'),
               ),
             ),
             const SizedBox(height: 16),
@@ -499,16 +526,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 isExpanded: true,
                 borderRadius: BorderRadius.circular(14),
                 dropdownColor: Colors.white,
-                decoration: const InputDecoration(hintText: 'Vehicle Type'),
+                decoration: InputDecoration(hintText: l10n.tr('Vehicle Type')),
                 icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: DriverVehicleType.bike,
-                    child: Text('Bike'),
+                    child: Text(l10n.tr('Bike')),
                   ),
                   DropdownMenuItem(
                     value: DriverVehicleType.electricBike,
-                    child: Text('Electric Bike'),
+                    child: Text(l10n.tr('Electric Bike')),
                   ),
                 ],
                 onChanged: (value) {
@@ -520,7 +547,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             TextFormField(
               controller: _vehiclePlateController,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(hintText: 'Vehicle Plate'),
+              decoration: InputDecoration(hintText: l10n.tr('Vehicle Plate')),
               onFieldSubmitted: (_) => _saveProfile(),
             ),
             const SizedBox(height: 24),
@@ -540,7 +567,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Save'),
+                    : Text(l10n.tr('Save')),
               ),
             ),
           ],
@@ -579,7 +606,10 @@ class _ErrorState extends StatelessWidget {
               style: const TextStyle(color: AppColors.subtitle),
             ),
             const SizedBox(height: 12),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            TextButton(
+              onPressed: onRetry,
+              child: Text(context.l10n.tr('Retry')),
+            ),
           ],
         ),
       ),

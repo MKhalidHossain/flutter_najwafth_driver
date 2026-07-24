@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/errors/app_failure.dart';
-import 'package:flutter_najwafth_driver/core/extensions/date_time_extensions.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/core/utils/currency_formatter.dart';
 import 'package:flutter_najwafth_driver/core/utils/map_launcher.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/data/driver_api.dart';
@@ -109,7 +107,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Status updated successfully')),
+        SnackBar(content: Text(context.l10n.tr('Status updated successfully'))),
       );
     } else {
       setState(() {
@@ -118,7 +116,8 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result.failureOrNull?.message ?? 'Failed to update status',
+            result.failureOrNull?.message ??
+                context.l10n.tr('Failed to update status'),
           ),
         ),
       );
@@ -135,9 +134,9 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
     );
 
     if (!opened && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Location not available')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.tr('Location not available'))),
+      );
     }
   }
 
@@ -156,10 +155,10 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
 
   String _getButtonText() {
     return switch (_currentStatus) {
-      OrderStatus.accepted => 'Mark as Picked',
-      OrderStatus.pickedUp => 'Go to On Way',
-      OrderStatus.onWay => 'Confirm Delivery',
-      OrderStatus.delivered => 'Done',
+      OrderStatus.accepted => context.l10n.tr('Mark as Picked'),
+      OrderStatus.pickedUp => context.l10n.tr('Go to On Way'),
+      OrderStatus.onWay => context.l10n.tr('Confirm Delivery'),
+      OrderStatus.delivered => context.l10n.tr('Done'),
     };
   }
 
@@ -190,7 +189,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Order  $orderId',
+              '${context.l10n.tr('Order')}  $orderId',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -198,7 +197,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
               ),
             ),
             Text(
-              'Estimated Earnings: $earnings',
+              '${context.l10n.tr('Estimated Earnings:')} $earnings',
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
@@ -261,7 +260,10 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
                 style: const TextStyle(fontSize: 15, color: AppColors.title),
               ),
               const SizedBox(height: 20),
-              FilledButton(onPressed: _loadRequest, child: const Text('Retry')),
+              FilledButton(
+                onPressed: _loadRequest,
+                child: Text(context.l10n.tr('Retry')),
+              ),
             ],
           ),
         ),
@@ -269,10 +271,10 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
     }
 
     if (request == null) {
-      return const Center(
+      return Center(
         child: Text(
-          'Order not found.',
-          style: TextStyle(fontSize: 15, color: AppColors.title),
+          context.l10n.tr('Order not found.'),
+          style: const TextStyle(fontSize: 15, color: AppColors.title),
         ),
       );
     }
@@ -290,7 +292,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
             child: FilledButton.icon(
               onPressed: () => _openRoute(request),
               icon: const Icon(Icons.location_on, size: 20),
-              label: const Text('View Route on Map'),
+              label: Text(context.l10n.tr('View Route on Map')),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -302,11 +304,11 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
           ),
           const SizedBox(height: 24),
           LocationInfoCard(
-            title: 'Pickup From',
+            title: context.l10n.tr('Pickup From'),
             titleIcon: Icons.storefront_outlined,
             locationName: request.shopName.isNotEmpty
                 ? request.shopName
-                : 'Shop',
+                : context.l10n.tr('Shop'),
             address:
                 request.pickupAddress ??
                 (request.location.isNotEmpty ? request.location : '—'),
@@ -315,11 +317,11 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
             orderId: orderId,
           ),
           LocationInfoCard(
-            title: 'Deliver To',
+            title: context.l10n.tr('Deliver To'),
             titleIcon: Icons.person_outline,
             locationName: request.customerName.isNotEmpty
                 ? request.customerName
-                : 'Customer',
+                : context.l10n.tr('Customer'),
             address:
                 request.deliveryAddress ??
                 (request.location.isNotEmpty ? request.location : '—'),
@@ -328,7 +330,9 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
             orderId: orderId,
           ),
           OrderItemsCard(
-            itemName: request.item.isNotEmpty ? request.item : 'Delivery',
+            itemName: request.item.isNotEmpty
+                ? request.item
+                : context.l10n.tr('Delivery'),
           ),
         ],
       ),
