@@ -46,28 +46,45 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     final notificationResult = await ref
         .read(notificationApiProvider)
         .getUnreadNotificationCount();
-    final requestsResult = await ref
-        .read(driverApiProvider)
-        .getDriverRequests(page: 1, limit: 10);
 
     if (!mounted) return;
 
     final userFailure = userResult.failureOrNull;
-    final requestsFailure = requestsResult.failureOrNull;
-    if (userFailure != null || requestsFailure != null) {
+    if (userFailure != null) {
       setState(() {
-        _error = userFailure ?? requestsFailure;
+        _error = userFailure;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final api = ref.read(driverApiProvider);
+    final requestsResult = await api.getDriverRequests(page: 1, limit: 10);
+    final driverId = userResult.dataOrNull?.id ?? '';
+    final assignedRequestsResult = driverId.isEmpty
+        ? null
+        : await api.getDriverRequestsByDriver(driverId);
+
+    if (!mounted) return;
+
+    final requestsFailure = requestsResult.failureOrNull;
+    final assignedRequestsFailure = assignedRequestsResult?.failureOrNull;
+    if (requestsFailure != null || assignedRequestsFailure != null) {
+      setState(() {
+        _error = requestsFailure ?? assignedRequestsFailure;
         _isLoading = false;
       });
       return;
     }
 
     final requests = requestsResult.dataOrNull?.requests ?? const [];
+    final assignedRequests =
+        assignedRequestsResult?.dataOrNull?.requests ?? const [];
 
     setState(() {
       _profile = userResult.dataOrNull;
       _unreadCount = notificationResult.dataOrNull ?? 0;
-      _allDriverRequests = requests;
+      _allDriverRequests = assignedRequests;
       _driverRequests = requests
           .where((request) => request.status.toLowerCase() == 'pending')
           .toList(growable: false);
@@ -353,13 +370,13 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       return _buildErrorView(_error!);
     }
 
-    // TODO: GET /api/v1/driver/earnings/today is needed from backend.
-    // TODO: Replace temporary stats with GET /api/v1/driver/dashboard when
-    // backend endpoints are available.
-    // TODO: Replace the all-requests feed with GET /api/v1/driver/requests/new
-    // when backend support is available.
+    final now = DateTime.now();
     final deliveredRequests = _allDriverRequests
-        .where((request) => request.status.toLowerCase() == 'delivered')
+        .where(
+          (request) =>
+              request.status.toLowerCase() == 'delivered' &&
+              _isSameDay(request.updatedAt ?? request.orderDate, now),
+        )
         .toList(growable: false);
     final todayEarnings = deliveredRequests.fold<double>(
       0,
@@ -438,6 +455,14 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       onAccept: () => _acceptRequest(request.id),
       onReject: () => _rejectRequest(request.id),
     );
+  }
+
+  bool _isSameDay(DateTime? date, DateTime day) {
+    if (date == null) return false;
+    final localDate = date.toLocal();
+    return localDate.year == day.year &&
+        localDate.month == day.month &&
+        localDate.day == day.day;
   }
 
   Widget _buildErrorView(AppFailure failure) {

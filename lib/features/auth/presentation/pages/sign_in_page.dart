@@ -52,7 +52,7 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
   void _routeAfterSignIn() {
     final session = ref.read(appSessionControllerProvider);
 
-    if (session.profileCompleted) {
+    if (!session.shouldShowCompleteProfile) {
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);

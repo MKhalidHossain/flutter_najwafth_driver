@@ -9,10 +9,9 @@ import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // TODO: Replace with GET /api/v1/driver/orders/active once backend provides a
-// dedicated active-orders endpoint with pickup/on-way/delivered lifecycle
-// statuses. Current backend only exposes accepted/rejected driver requests.
+// dedicated active-orders endpoint.
 
-const _activeStatuses = {'accepted'};
+const _activeStatuses = {'accepted', 'processing', 'picked'};
 
 class ActiveTab extends ConsumerStatefulWidget {
   const ActiveTab({super.key});

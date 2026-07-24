@@ -10,6 +10,7 @@ import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
 import 'package:flutter_najwafth_driver/features/user/domain/user_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -30,6 +31,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _dobController = TextEditingController();
   final _ageController = TextEditingController();
   final _addressController = TextEditingController();
+  final _driverIdController = TextEditingController();
+  final _entrepreneurStatusController = TextEditingController();
   final _vehiclePlateController = TextEditingController();
 
   bool _isLoading = true;
@@ -39,6 +42,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   String? _avatarUrl;
   XFile? _selectedAvatar;
   String? _selectedGender;
+  DateTime? _selectedDob;
   late DriverVehicleType _vehicleType;
 
   @override
@@ -60,6 +64,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _dobController.dispose();
     _ageController.dispose();
     _addressController.dispose();
+    _driverIdController.dispose();
+    _entrepreneurStatusController.dispose();
     _vehiclePlateController.dispose();
     super.dispose();
   }
@@ -95,9 +101,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _bioController.text = profile.bio;
     _selectedGender = _readGender(profile.gender);
     _genderController.text = _selectedGender ?? '';
-    _dobController.text = profile.dob?.toIso8601String().split('T').first ?? '';
-    _ageController.text = profile.age?.toString() ?? '';
+    _selectedDob = profile.dob == null
+        ? null
+        : DateTime(profile.dob!.year, profile.dob!.month, profile.dob!.day);
+    _dobController.text = _selectedDob == null
+        ? ''
+        : DateFormat('dd MMM yyyy').format(_selectedDob!);
+    _ageController.text = _selectedDob == null
+        ? profile.age?.toString() ?? ''
+        : _calculateAge(_selectedDob!).toString();
     _addressController.text = profile.address;
+    _driverIdController.text = profile.driverId ?? session.driverId ?? '';
+    _entrepreneurStatusController.text =
+        profile.entrepreneurStatus ?? session.entrepreneurStatus ?? '';
     _avatarUrl = profile.avatarUrl;
     _selectedAvatar = null;
 
@@ -117,9 +133,15 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       'name': _nameController.text.trim(),
       'phone': _phoneController.text.trim(),
       'bio': _bioController.text.trim(),
-      'gender': _genderController.text.trim(),
-      'dob': _dobController.text.trim(),
+      'gender': _genderController.text.trim().toLowerCase(),
+      'dob': _selectedDob == null
+          ? ''
+          : DateFormat('yyyy-MM-dd').format(_selectedDob!),
       'address': _addressController.text.trim(),
+      'driverId': _driverIdController.text.trim(),
+      'entrepreneurStatus': _entrepreneurStatusController.text.trim(),
+      'vehicleType': _vehicleType.name,
+      'vehiclePlateNumber': _vehiclePlateController.text.trim(),
     };
 
     final age = int.tryParse(_ageController.text.trim());
@@ -156,15 +178,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           phone: updatedProfile.phone,
         );
 
-    // TODO: PATCH /api/v1/driver/profile is needed for vehicle details.
     await ref
         .read(appSessionControllerProvider.notifier)
-        .updateVehicleDetailsLocally(
+        .completeProfile(
           vehicleType:
               _readVehicleType(updatedProfile.vehicleType) ?? _vehicleType,
+          driverId: updatedProfile.driverId ?? _driverIdController.text.trim(),
+          entrepreneurStatus:
+              updatedProfile.entrepreneurStatus ??
+              _entrepreneurStatusController.text.trim(),
           vehiclePlateNumber:
               updatedProfile.vehiclePlateNumber ??
               _vehiclePlateController.text.trim(),
+          avatarPreset: ref.read(appSessionControllerProvider).avatarPreset,
         );
 
     if (!mounted) return;
@@ -228,6 +254,41 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     return error.message?.isNotEmpty == true
         ? error.message!
         : 'Could not pick image.';
+  }
+
+  Future<void> _selectDateOfBirth() async {
+    FocusScope.of(context).unfocus();
+
+    final today = DateUtils.dateOnly(DateTime.now());
+    final initialDate = _selectedDob ?? DateTime(today.year - 18);
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1900),
+      lastDate: today,
+      initialDatePickerMode: DatePickerMode.year,
+      helpText: 'Select date of birth',
+      cancelText: 'Cancel',
+      confirmText: 'Select',
+    );
+
+    if (selectedDate == null || !mounted) return;
+
+    setState(() {
+      _selectedDob = DateUtils.dateOnly(selectedDate);
+      _dobController.text = DateFormat('dd MMM yyyy').format(_selectedDob!);
+      _ageController.text = _calculateAge(_selectedDob!).toString();
+    });
+  }
+
+  int _calculateAge(DateTime dateOfBirth) {
+    final today = DateUtils.dateOnly(DateTime.now());
+    var age = today.year - dateOfBirth.year;
+    final birthdayHasPassed =
+        today.month > dateOfBirth.month ||
+        (today.month == dateOfBirth.month && today.day >= dateOfBirth.day);
+    if (!birthdayHasPassed) age--;
+    return age;
   }
 
   DriverVehicleType? _readVehicleType(String? value) {
@@ -389,27 +450,46 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _dobController,
-              keyboardType: TextInputType.datetime,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Date of Birth'),
+              readOnly: true,
+              canRequestFocus: false,
+              onTap: _selectDateOfBirth,
+              decoration: const InputDecoration(
+                hintText: 'Date of Birth',
+                suffixIcon: Icon(Icons.calendar_month_outlined),
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _ageController,
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.next,
-              validator: (value) {
-                final text = value?.trim() ?? '';
-                if (text.isEmpty || int.tryParse(text) != null) return null;
-                return 'Age must be a number.';
-              },
-              decoration: const InputDecoration(hintText: 'Age'),
+              readOnly: true,
+              canRequestFocus: false,
+              decoration: const InputDecoration(
+                hintText: 'Age',
+                suffixIcon: Icon(Icons.cake_outlined),
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _addressController,
               textInputAction: TextInputAction.next,
               decoration: const InputDecoration(hintText: 'Address'),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _driverIdController,
+              textInputAction: TextInputAction.next,
+              validator: (value) => Validators.required(value, label: 'ID'),
+              decoration: const InputDecoration(hintText: 'ID'),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _entrepreneurStatusController,
+              textInputAction: TextInputAction.next,
+              validator: (value) =>
+                  Validators.required(value, label: 'Entrepreneur status'),
+              decoration: const InputDecoration(
+                hintText: 'Entrepreneur Status',
+              ),
             ),
             const SizedBox(height: 16),
             ButtonTheme(

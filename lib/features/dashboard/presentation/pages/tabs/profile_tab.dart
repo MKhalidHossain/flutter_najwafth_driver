@@ -96,16 +96,28 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     String? role,
     String? avatarUrl,
   ) {
-    final vehicleLabel = session.vehicleType == DriverVehicleType.electricBike
+    final backendVehicleType = _readVehicleType(_profile?.vehicleType);
+    final vehicleType = backendVehicleType ?? session.vehicleType;
+    final vehicleLabel = vehicleType == DriverVehicleType.electricBike
         ? 'E-Bike'
         : 'Bike';
-    final vehicleIcon = session.vehicleType == DriverVehicleType.electricBike
+    final vehicleIcon = vehicleType == DriverVehicleType.electricBike
         ? Icons.electric_bike
         : Icons.directions_bike;
-    final vehicleId = session.vehiclePlateNumber?.isNotEmpty == true
-        ? session.vehiclePlateNumber!
+    final driverId = _profile?.driverId?.isNotEmpty == true
+        ? _profile!.driverId!
+        : session.driverId?.isNotEmpty == true
+        ? session.driverId!
+        : 'N/A';
+    final entrepreneurStatus = _profile?.entrepreneurStatus?.isNotEmpty == true
+        ? _profile!.entrepreneurStatus!
         : session.entrepreneurStatus?.isNotEmpty == true
         ? session.entrepreneurStatus!
+        : 'N/A';
+    final plateNumber = _profile?.vehiclePlateNumber?.isNotEmpty == true
+        ? _profile!.vehiclePlateNumber!
+        : session.vehiclePlateNumber?.isNotEmpty == true
+        ? session.vehiclePlateNumber!
         : 'N/A';
 
     return Container(
@@ -234,15 +246,35 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Center(
-                  child: Text(
-                    'Vehicle Details',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Center(
+                        child: Text(
+                          'Driver Details',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    IconButton(
+                      tooltip: 'Edit driver details',
+                      onPressed: () async {
+                        await Navigator.pushNamed(
+                          context,
+                          AppRoutes.editProfile,
+                        );
+                        if (mounted) _loadProfile();
+                      },
+                      icon: const Icon(
+                        Icons.edit_outlined,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 const Divider(color: AppColors.border),
@@ -254,53 +286,19 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          RichText(
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            text: TextSpan(
-                              children: [
-                                const TextSpan(
-                                  text: 'Vehicle: ',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.subtitle,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: vehicleLabel,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          _DriverDetailLine(
+                            label: 'Vehicle',
+                            value: vehicleLabel,
                           ),
                           const SizedBox(height: 12),
-                          RichText(
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            text: TextSpan(
-                              children: [
-                                const TextSpan(
-                                  text: 'ID: ',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.subtitle,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: vehicleId,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          _DriverDetailLine(label: 'ID', value: driverId),
+                          const SizedBox(height: 12),
+                          _DriverDetailLine(
+                            label: 'Status',
+                            value: entrepreneurStatus,
                           ),
+                          const SizedBox(height: 12),
+                          _DriverDetailLine(label: 'Plate', value: plateNumber),
                         ],
                       ),
                     ),
@@ -338,6 +336,17 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
         ],
       ),
     );
+  }
+
+  DriverVehicleType? _readVehicleType(String? value) {
+    return switch (value) {
+      'electricBike' ||
+      'electric_bike' ||
+      'E-Bike' ||
+      'Electric Bike' => DriverVehicleType.electricBike,
+      'bike' || 'Bike' => DriverVehicleType.bike,
+      _ => null,
+    };
   }
 
   Widget _buildErrorBanner() {
@@ -526,6 +535,37 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           child: Divider(color: Color(0xFFF0F0F0), height: 1),
         ),
       ],
+    );
+  }
+}
+
+class _DriverDetailLine extends StatelessWidget {
+  const _DriverDetailLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: '$label: ',
+            style: const TextStyle(fontSize: 14, color: AppColors.subtitle),
+          ),
+          TextSpan(
+            text: value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
