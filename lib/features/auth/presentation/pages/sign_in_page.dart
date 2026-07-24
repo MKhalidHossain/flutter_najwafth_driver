@@ -102,107 +102,109 @@ final class _SignInPageState extends ConsumerState<SignInPage> {
     return DriverScaffold(
       child: Form(
         key: _formKey,
-        child: DriverScrollableBody(
-          children: [
-            const SizedBox(height: 18),
-            const DriverBrandHeader(width: 240),
-            const SizedBox(height: 34),
-            DriverTextField(
-              controller: _emailController,
-              label: 'User Email',
-              hintText: 'Enter your Email',
-              prefixIcon: Icons.mail_outline_rounded,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.email],
-              validator: Validators.email,
-            ),
-            const SizedBox(height: 20),
-            DriverTextField(
-              controller: _passwordController,
-              label: 'Password',
-              hintText: 'Enter your Password',
-              prefixIcon: Icons.lock_outline_rounded,
-              obscureText: _obscurePassword,
-              textInputAction: TextInputAction.done,
-              autofillHints: const [AutofillHints.password],
-              validator: (value) =>
-                  Validators.minLength(value, 6, label: 'Password'),
-              onFieldSubmitted: (_) => _submit(),
-              suffixIcon: IconButton(
-                onPressed: () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
+        child: Center(
+          child: DriverScrollableBody(
+            children: [
+              const SizedBox(height: 18),
+              const DriverBrandHeader(width: 240),
+              const SizedBox(height: 34),
+              DriverTextField(
+                controller: _emailController,
+                label: 'User Email',
+                hintText: 'Enter your Email',
+                prefixIcon: Icons.mail_outline_rounded,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.email],
+                validator: Validators.email,
+              ),
+              const SizedBox(height: 20),
+              DriverTextField(
+                controller: _passwordController,
+                label: 'Password',
+                hintText: 'Enter your Password',
+                prefixIcon: Icons.lock_outline_rounded,
+                obscureText: _obscurePassword,
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.password],
+                validator: (value) =>
+                    Validators.minLength(value, 6, label: 'Password'),
+                onFieldSubmitted: (_) => _submit(),
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: Checkbox(
-                    value: _rememberMe,
-                    onChanged: (value) {
-                      setState(() => _rememberMe = value ?? false);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Remember me',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(color: AppColors.subtitle),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(AppRoutes.forgotPassword);
-                  },
-                  child: const Text('Forgot password?'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            DriverPrimaryButton(
-              label: 'Sign in',
-              onPressed: isLoading ? null : _submit,
-              isLoading: isLoading,
-            ),
-            const SizedBox(height: 28),
-            Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 4,
-              children: [
-                Text(
-                  "Don't have an account?",
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.title,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(AppRoutes.signUp),
-                  child: Text(
-                    'Sign Up Here',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.link,
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: Checkbox(
+                      value: _rememberMe,
+                      onChanged: (value) {
+                        setState(() => _rememberMe = value ?? false);
+                      },
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
+                  const SizedBox(width: 12),
+                  Text(
+                    'Remember me',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(color: AppColors.subtitle),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(AppRoutes.forgotPassword);
+                    },
+                    child: const Text('Forgot password?'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              DriverPrimaryButton(
+                label: 'Sign in',
+                onPressed: isLoading ? null : _submit,
+                isLoading: isLoading,
+              ),
+              const SizedBox(height: 28),
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 4,
+                children: [
+                  Text(
+                    "Don't have an account?",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.title,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.signUp),
+                    child: Text(
+                      'Sign Up Here',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.link,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
