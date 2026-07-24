@@ -79,7 +79,7 @@ final class _OnboardingPageState extends ConsumerState<OnboardingPage> {
       return;
     }
 
-    if (!session.profileCompleted) {
+    if (session.shouldShowCompleteProfile) {
       Navigator.of(context).pushNamedAndRemoveUntil(
         AppRoutes.completeProfile,
         (route) => false,

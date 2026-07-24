@@ -11,9 +11,6 @@ import 'package:flutter_najwafth_driver/features/orders/presentation/widgets/ord
 import 'package:flutter_najwafth_driver/features/orders/presentation/widgets/order_status_timeline.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// TODO: PATCH /api/v1/driver/orders/:orderId/status is needed from backend
-// to persist status transitions (picked_up, on_way, delivered).
-// Status changes below are local UI state only until that endpoint exists.
 // TODO: GET /api/v1/driver/orders/:orderId/route is needed for a backend-built
 // route with pickup/dropoff coordinates and any route metadata.
 // TODO: Backend should return pickupAddress, pickupLat, pickupLng,
@@ -71,8 +68,8 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
 
   OrderStatus _parseStatus(String raw) {
     return switch (raw.toLowerCase()) {
-      'picked_up' || 'in_progress' => OrderStatus.pickedUp,
-      'on_way' || 'shipped' => OrderStatus.onWay,
+      'processing' || 'picked_up' || 'in_progress' => OrderStatus.pickedUp,
+      'picked' || 'on_way' || 'shipped' => OrderStatus.onWay,
       'delivered' => OrderStatus.delivered,
       _ => OrderStatus.accepted,
     };
@@ -86,12 +83,12 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
 
     final request = _request;
     if (request == null) return;
-    
+
     final orderId = request.orderId.isNotEmpty ? request.orderId : request.id;
 
     final String nextStatusRaw = switch (_currentStatus) {
-      OrderStatus.accepted => 'picked_up',
-      OrderStatus.pickedUp => 'on_way',
+      OrderStatus.accepted => 'processing',
+      OrderStatus.pickedUp => 'picked',
       OrderStatus.onWay => 'delivered',
       OrderStatus.delivered => 'delivered',
     };
