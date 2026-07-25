@@ -259,20 +259,20 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                         ),
                       ),
                     ),
-                    IconButton(
-                      tooltip: context.l10n.tr('Edit driver details'),
-                      onPressed: () async {
-                        await Navigator.pushNamed(
-                          context,
-                          AppRoutes.editProfile,
-                        );
-                        if (mounted) _loadProfile();
-                      },
-                      icon: const Icon(
-                        Icons.edit_outlined,
-                        color: AppColors.primary,
-                      ),
-                    ),
+                    // IconButton(
+                    //   tooltip: context.l10n.tr('Edit driver details'),
+                    //   onPressed: () async {
+                    //     await Navigator.pushNamed(
+                    //       context,
+                    //       AppRoutes.editProfile,
+                    //     );
+                    //     if (mounted) _loadProfile();
+                    //   },
+                    //   icon: const Icon(
+                    //     Icons.edit_outlined,
+                    //     color: AppColors.primary,
+                    //   ),
+                    // ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -419,6 +419,13 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           onTap: () => Navigator.pushNamed(context, AppRoutes.notifications),
         ),
         _buildMenuItem(
+          icon: Icons.person_remove_outlined,
+          title: context.l10n.tr('Delete Account'),
+          titleColor: const Color(0xFFB42318),
+          iconColor: const Color(0xFFB42318),
+          onTap: () => _showDeleteAccountDialog(context),
+        ),
+        _buildMenuItem(
           icon: Icons.logout,
           title: context.l10n.tr('Log Out'),
           titleColor: AppColors.primary,
@@ -507,6 +514,65 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           ),
         );
       },
+    );
+  }
+
+  Future<void> _showDeleteAccountDialog(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        title: Text(context.l10n.tr('Delete Account')),
+        content: Text(
+          context.l10n.tr(
+            'Your account and personal profile data will be permanently deleted. This action cannot be undone.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.l10n.tr('Cancel')),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFB42318),
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.l10n.tr('Delete Account')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final result = await ref.read(userApiProvider).deleteCurrentUser();
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      return;
+    }
+
+    await ref.read(appSessionControllerProvider.notifier).clearLocalSession();
+    if (!context.mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.signIn,
+      (route) => false,
+      arguments: SignInRouteArgs(
+        successMessage: context.l10n.tr('Your account has been deleted.'),
+      ),
     );
   }
 
