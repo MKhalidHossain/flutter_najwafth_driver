@@ -385,7 +385,7 @@ class _DetailLine extends StatelessWidget {
         onTap: () => _performAction(context, action),
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+          padding: const EdgeInsets.fromLTRB(12, 12, 6, 12),
           decoration: BoxDecoration(
             border: Border.all(color: accentColor.withValues(alpha: .22)),
             borderRadius: BorderRadius.circular(8),
@@ -394,8 +394,8 @@ class _DetailLine extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 38,
-                height: 38,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: .1),
                   borderRadius: BorderRadius.circular(8),
@@ -406,7 +406,7 @@ class _DetailLine extends StatelessWidget {
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,23 +420,25 @@ class _DetailLine extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Text(
-                      details.$2,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        height: 1.35,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF3F4754),
-                      ),
+                    _DetailValue(
+                      value: details.$2,
+                      email: action.type == _DocumentActionType.email
+                          ? action.value
+                          : null,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
               IconButton(
                 onPressed: () => _performAction(context, action),
                 tooltip: _actionTooltip(context, action.type),
                 visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints.tightFor(
+                  width: 40,
+                  height: 40,
+                ),
+                padding: EdgeInsets.zero,
                 icon: Icon(action.icon, color: accentColor, size: 20),
               ),
             ],
@@ -549,6 +551,56 @@ class _DetailLine extends StatelessWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _DetailValue extends StatelessWidget {
+  const _DetailValue({required this.value, this.email});
+
+  final String value;
+  final String? email;
+
+  static const _style = TextStyle(
+    fontSize: 14,
+    height: 1.35,
+    fontWeight: FontWeight.w600,
+    color: Color(0xFF3F4754),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final emailValue = email;
+    if (emailValue == null) {
+      return Text(value, style: _style);
+    }
+
+    final description = value
+        .replaceFirst(emailValue, '')
+        .trim()
+        .replaceFirst(RegExp(r':$'), '');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (description.isNotEmpty) ...[
+          Text(description, style: _style),
+          const SizedBox(height: 2),
+        ],
+        SizedBox(
+          width: double.infinity,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              emailValue,
+              maxLines: 1,
+              softWrap: false,
+              style: _style,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 

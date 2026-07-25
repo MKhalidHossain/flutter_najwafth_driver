@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app.dart';
 import 'package:flutter_najwafth_driver/core/core.dart';
+import 'package:flutter_najwafth_driver/features/profile/presentation/widgets/document_page.dart';
 import 'package:flutter_najwafth_driver/features/splash/presentation/splash_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -65,5 +66,53 @@ void main() {
 
     final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
     expect(materialApp.locale, const Locale('en'));
+  });
+
+  testWidgets('Legal email addresses stay on one line on narrow screens', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(375, 812);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        locale: Locale('en'),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: [AppLocalizations.delegate],
+        home: Scaffold(
+          body: SingleChildScrollView(
+            padding: EdgeInsets.all(20),
+            child: DocumentContent(
+              content: '''
+LEGAL NOTICES
+
+E-mail: booksonwheels21000@gmail.com
+Contact: for any questions regarding this document: booksonwheels21000@gmail.com
+''',
+              accentColor: AppColors.primary,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final emailFinder = find.text('booksonwheels21000@gmail.com');
+    expect(emailFinder, findsNWidgets(2));
+    for (final element in emailFinder.evaluate()) {
+      final text = element.widget as Text;
+      expect(text.maxLines, 1);
+      expect(text.softWrap, isFalse);
+      expect(
+        find.ancestor(
+          of: find.byWidget(element.widget),
+          matching: find.byType(FittedBox),
+        ),
+        findsOneWidget,
+      );
+    }
+    expect(tester.takeException(), isNull);
   });
 }

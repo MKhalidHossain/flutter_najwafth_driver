@@ -595,7 +595,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           title: Text(
             title,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w500,
               color: titleColor,
             ),
