@@ -489,6 +489,7 @@ These Terms of Sale are subject to French law.""";
     'Current Password': 'Mot de passe actuel',
     'Customer': 'Client',
     'Date of Birth': 'Date de naissance',
+    'Delete Account': 'Supprimer le compte',
     'Deliver Books, Earn More': 'Livrez des livres, gagnez plus',
     'Deliver To': 'Livrer à',
     'Delivered': 'Livrée',
@@ -615,6 +616,9 @@ These Terms of Sale are subject to French law.""";
     'View Route on Map': "Voir l'itinéraire sur la carte",
     'Welcome Back!': 'Bon retour !',
     'Your Email': 'Votre e-mail',
+    'Your account and personal profile data will be permanently deleted. This action cannot be undone.':
+        'Votre compte et vos données personnelles seront définitivement supprimés. Cette action est irréversible.',
+    'Your account has been deleted.': 'Votre compte a été supprimé.',
     "Don't have an account?": "Vous n'avez pas de compte ?",
     "Didn't Receive OTP?": "Vous n'avez pas reçu le code OTP ?",
     'Already have an account?': 'Vous avez déjà un compte ?',
