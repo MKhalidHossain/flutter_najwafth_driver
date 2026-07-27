@@ -13,6 +13,8 @@ final class UserProfile {
     this.dob,
     this.age,
     this.avatarUrl,
+    this.driverId,
+    this.entrepreneurStatus,
     this.vehicleType,
     this.vehiclePlateNumber,
   });
@@ -28,6 +30,8 @@ final class UserProfile {
   final DateTime? dob;
   final int? age;
   final String? avatarUrl;
+  final String? driverId;
+  final String? entrepreneurStatus;
   final String? vehicleType;
   final String? vehiclePlateNumber;
 
@@ -50,6 +54,8 @@ final class UserProfile {
           : avatar is String
           ? avatar
           : json['avatarUrl'] as String? ?? json['profileImage'] as String?,
+      driverId: json['driverId'] as String?,
+      entrepreneurStatus: json['entrepreneurStatus'] as String?,
       vehicleType: json['vehicleType'] as String?,
       vehiclePlateNumber: json['vehiclePlateNumber'] as String?,
     );

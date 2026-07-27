@@ -6,6 +6,10 @@ class User {
     required this.phone,
     required this.role,
     required this.isEmailVerified,
+    this.driverId,
+    this.entrepreneurStatus,
+    this.vehicleType,
+    this.vehiclePlateNumber,
   });
 
   final String id;
@@ -14,6 +18,10 @@ class User {
   final String phone;
   final String role;
   final bool isEmailVerified;
+  final String? driverId;
+  final String? entrepreneurStatus;
+  final String? vehicleType;
+  final String? vehiclePlateNumber;
 
   factory User.fromJson(Map<String, dynamic> json) {
     final verificationInfo = json['verificationInfo'];
@@ -29,6 +37,10 @@ class User {
           (verificationInfo is Map
               ? verificationInfo['verified'] as bool? ?? false
               : false),
+      driverId: json['driverId'] as String?,
+      entrepreneurStatus: json['entrepreneurStatus'] as String?,
+      vehicleType: json['vehicleType'] as String?,
+      vehiclePlateNumber: json['vehiclePlateNumber'] as String?,
     );
   }
 }

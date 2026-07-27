@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/errors/app_failure.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/core/utils/currency_formatter.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/data/driver_api.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/domain/driver_request.dart';
@@ -56,7 +55,7 @@ final class _DriverRequestDetailsPageState
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: AppColors.title,
-        title: const Text('Request Details'),
+        title: Text(context.l10n.tr('Request Details')),
       ),
       body: RefreshIndicator(
         onRefresh: _loadRequest,
@@ -105,7 +104,7 @@ final class _DriverRequestDetailsContent extends StatelessWidget {
                 child: Text(
                   request.shopName.isNotEmpty
                       ? request.shopName
-                      : 'Unknown Shop',
+                      : context.l10n.tr('Unknown Shop'),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -124,19 +123,28 @@ final class _DriverRequestDetailsContent extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _DetailRow(label: 'Order ID', value: orderId),
-          _DetailRow(label: 'Status', value: request.status),
-          _DetailRow(label: 'Customer', value: request.customerName),
-          _DetailRow(label: 'Phone', value: request.phone),
-          _DetailRow(label: 'Item', value: request.item),
-          _DetailRow(label: 'Location', value: request.location),
+          _DetailRow(label: context.l10n.tr('Order ID'), value: orderId),
           _DetailRow(
-            label: 'Total Amount',
+            label: context.l10n.tr('Status'),
+            value: context.l10n.statusLabel(request.status),
+          ),
+          _DetailRow(
+            label: context.l10n.tr('Customer'),
+            value: request.customerName,
+          ),
+          _DetailRow(label: context.l10n.tr('Phone'), value: request.phone),
+          _DetailRow(label: context.l10n.tr('Item'), value: request.item),
+          _DetailRow(
+            label: context.l10n.tr('Location'),
+            value: request.location,
+          ),
+          _DetailRow(
+            label: context.l10n.tr('Total Amount'),
             value: request.totalAmount == null
                 ? ''
                 : formatCurrency(request.totalAmount!),
           ),
-          _DetailRow(label: 'Message', value: request.message),
+          _DetailRow(label: context.l10n.tr('Message'), value: request.message),
         ],
       ),
     );
@@ -197,7 +205,10 @@ final class _DetailsErrorView extends StatelessWidget {
             style: const TextStyle(fontSize: 15, color: AppColors.title),
           ),
           const SizedBox(height: 20),
-          FilledButton(onPressed: onRetry, child: const Text('Retry')),
+          FilledButton(
+            onPressed: onRetry,
+            child: Text(context.l10n.tr('Retry')),
+          ),
         ],
       ),
     );
@@ -209,12 +220,12 @@ final class _DetailsEmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(top: 120),
+    return Padding(
+      padding: const EdgeInsets.only(top: 120),
       child: Center(
         child: Text(
-          'Driver request not found',
-          style: TextStyle(fontSize: 15, color: AppColors.title),
+          context.l10n.tr('Driver request not found'),
+          style: const TextStyle(fontSize: 15, color: AppColors.title),
         ),
       ),
     );

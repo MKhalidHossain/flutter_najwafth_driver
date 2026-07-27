@@ -96,7 +96,7 @@ final class _OtpVerificationPageState
     if (failure != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
       return;
     }
 
@@ -108,7 +108,9 @@ final class _OtpVerificationPageState
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(result.dataOrNull ?? 'A fresh OTP has been sent.'),
+        content: Text(
+          result.dataOrNull ?? context.l10n.tr('A fresh OTP has been sent.'),
+        ),
       ),
     );
   }
@@ -117,7 +119,9 @@ final class _OtpVerificationPageState
     final otp = _controllers.map((c) => c.text).join();
     if (otp.length != _otpLength) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter the complete 6-digit OTP.')),
+        SnackBar(
+          content: Text(context.l10n.tr('Enter the complete 6-digit OTP.')),
+        ),
       );
       return;
     }
@@ -134,7 +138,7 @@ final class _OtpVerificationPageState
     if (failure != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
       return;
     }
 
@@ -153,13 +157,13 @@ final class _OtpVerificationPageState
           const DriverBrandHeader(width: 240),
           const SizedBox(height: 20),
           Text(
-            'Enter OTP',
+            context.l10n.tr('Enter OTP'),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Sent to ${widget.email}',
+            '${context.l10n.tr('Sent to')} ${widget.email}',
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
@@ -216,7 +220,7 @@ final class _OtpVerificationPageState
           ),
           const SizedBox(height: 20),
           Text(
-            'Resend code in ${_remainingSeconds}s',
+            '${context.l10n.tr('Resend code in')} ${_remainingSeconds}s',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: const Color(0xFF717171),
@@ -231,7 +235,7 @@ final class _OtpVerificationPageState
             runSpacing: 4,
             children: [
               Text(
-                "Didn't Receive OTP?",
+                context.l10n.tr("Didn't Receive OTP?"),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w500,
                   color: AppColors.title,
@@ -240,7 +244,7 @@ final class _OtpVerificationPageState
               GestureDetector(
                 onTap: _isResending ? null : _resendOtp,
                 child: Text(
-                  _isResending ? 'SENDING...' : 'RESEND OTP',
+                  context.l10n.tr(_isResending ? 'SENDING...' : 'RESEND OTP'),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: _remainingSeconds == 0
                         ? AppColors.success
@@ -253,7 +257,7 @@ final class _OtpVerificationPageState
           ),
           const SizedBox(height: 24),
           DriverPrimaryButton(
-            label: 'Verify Now',
+            label: context.l10n.tr('Verify Now'),
             onPressed: _isLoading ? null : _verifyOtp,
             isLoading: _isLoading,
           ),

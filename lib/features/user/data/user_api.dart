@@ -48,4 +48,8 @@ final class UserApi {
       parser: (data) => UserProfile.fromJson(data['data'] as JsonMap),
     );
   }
+
+  Future<Result<void>> deleteCurrentUser() {
+    return _apiClient.delete('$_basePath/me', parser: (_) {});
+  }
 }

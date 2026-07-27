@@ -50,19 +50,45 @@ final class DriverRequest {
   final DateTime? updatedAt;
 
   factory DriverRequest.fromJson(JsonMap json) {
+    final order = json['orderId'] is JsonMap
+        ? json['orderId'] as JsonMap
+        : const <String, dynamic>{};
+    final shop = json['shopId'] is JsonMap
+        ? json['shopId'] as JsonMap
+        : const <String, dynamic>{};
+    final customer = order['customer'] is JsonMap
+        ? order['customer'] as JsonMap
+        : const <String, dynamic>{};
+
     return DriverRequest(
       id: _readId(json['_id'] ?? json['id']),
       shopId: _readId(json['shopId']),
-      shopName: json['shopName'] as String? ?? '',
-      phone: json['phone'] as String? ?? '',
-      customerName: json['customerName'] as String? ?? '',
-      item: json['item'] as String? ?? '',
-      location: json['location'] as String? ?? '',
-      orderId: _readId(json['orderId']),
+      shopName:
+          json['shopName'] as String? ??
+          shop['storeName'] as String? ??
+          shop['name'] as String? ??
+          '',
+      phone:
+          json['phone'] as String? ??
+          order['phone'] as String? ??
+          customer['phone'] as String? ??
+          '',
+      customerName:
+          json['customerName'] as String? ??
+          order['recipientName'] as String? ??
+          customer['name'] as String? ??
+          '',
+      item: json['item'] as String? ?? _readOrderItems(order['items']),
+      location:
+          json['location'] as String? ??
+          order['address'] as String? ??
+          _readAddress(order['addressDetails']) ??
+          '',
+      orderId: _readOrderId(json['orderId']),
       message: json['message'] as String? ?? '',
       status: _readStatus(json),
-      orderDate: _readDate(json['orderDate']),
-      totalAmount: _readDouble(json['totalAmount']),
+      orderDate: _readDate(json['orderDate'] ?? order['createdAt']),
+      totalAmount: _readDouble(json['totalAmount'] ?? order['totalAmount']),
       price: _readDouble(json['price']),
       driverId: _readNullableId(json['driver']),
       pickupAddress: _readAddress(
@@ -77,14 +103,16 @@ final class DriverRequest {
             json['delivery'] ??
             json['dropoffAddress'] ??
             json['customerAddress'] ??
-            json['address'],
+            json['address'] ??
+            order['addressDetails'] ??
+            order['address'],
       ),
       deliveryLat: _readDouble(json['deliveryLat'] ?? json['deliveryLatitude']),
       deliveryLng: _readDouble(
         json['deliveryLng'] ?? json['deliveryLon'] ?? json['deliveryLongitude'],
       ),
-      createdAt: _readDate(json['createdAt']),
-      updatedAt: _readDate(json['updatedAt']),
+      createdAt: _readDate(json['createdAt'] ?? order['createdAt']),
+      updatedAt: _readDate(order['updatedAt'] ?? json['updatedAt']),
     );
   }
 }
@@ -228,6 +256,16 @@ final class UpdateDriverRequestPayload {
 
 String _readId(Object? value) => _readNullableId(value) ?? '';
 
+String _readOrderId(Object? value) {
+  if (value is JsonMap) {
+    return value['orderId'] as String? ??
+        value['_id'] as String? ??
+        value['id'] as String? ??
+        '';
+  }
+  return _readId(value);
+}
+
 String? _readNullableId(Object? value) {
   if (value == null) return null;
   if (value is String) return value;
@@ -266,6 +304,28 @@ String? _readAddress(Object? value) {
   return value.toString();
 }
 
+String _readOrderItems(Object? value) {
+  if (value is! List || value.isEmpty) return '';
+
+  final names = value
+      .whereType<JsonMap>()
+      .map((item) {
+        final product = item['product'];
+        if (product is JsonMap) {
+          final title = product['title'] as String?;
+          if (title != null && title.trim().isNotEmpty) {
+            final quantity = _readInt(item['quantity'], fallback: 1);
+            return quantity > 1 ? '$title x$quantity' : title;
+          }
+        }
+        return null;
+      })
+      .whereType<String>()
+      .toList(growable: false);
+
+  return names.join(', ');
+}
+
 int _readInt(Object? value, {required int fallback}) {
   if (value is int) return value;
   if (value is num) return value.toInt();
@@ -275,7 +335,7 @@ int _readInt(Object? value, {required int fallback}) {
 
 String _readStatus(JsonMap json) {
   final drStatus = json['status'] as String? ?? 'pending';
-  
+
   // Only override if the driver request is accepted.
   if (drStatus != 'accepted') return drStatus;
 
@@ -285,7 +345,13 @@ String _readStatus(JsonMap json) {
     if (orderStatus != null) {
       final os = orderStatus.toLowerCase();
       // If the order has progressed beyond pending, use the order's status
-      if (os == 'picked_up' || os == 'in_progress' || os == 'shipped' || os == 'on_way' || os == 'delivered') {
+      if (os == 'processing' ||
+          os == 'picked' ||
+          os == 'picked_up' ||
+          os == 'in_progress' ||
+          os == 'shipped' ||
+          os == 'on_way' ||
+          os == 'delivered') {
         return orderStatus;
       }
     }

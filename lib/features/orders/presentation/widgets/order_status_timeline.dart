@@ -1,18 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 
-enum OrderStatus {
-  accepted,
-  pickedUp,
-  onWay,
-  delivered,
-}
+enum OrderStatus { accepted, pickedUp, onWay, delivered }
 
 class OrderStatusTimeline extends StatelessWidget {
-  const OrderStatusTimeline({
-    super.key,
-    required this.currentStatus,
-  });
+  const OrderStatusTimeline({super.key, required this.currentStatus});
 
   final OrderStatus currentStatus;
 
@@ -23,11 +15,15 @@ class OrderStatusTimeline extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.inventory_2_outlined, color: AppColors.primary, size: 20),
+            Icon(
+              Icons.inventory_2_outlined,
+              color: AppColors.primary,
+              size: 20,
+            ),
             const SizedBox(width: 8),
-            const Text(
-              'Order Status',
-              style: TextStyle(
+            Text(
+              context.l10n.tr('Order Status'),
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppColors.title,
@@ -37,26 +33,26 @@ class OrderStatusTimeline extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _buildTimelineStep(
-          title: 'Accepted',
-          subtitle: 'Order received by Driver',
+          title: context.l10n.tr('Accepted'),
+          subtitle: context.l10n.tr('Order received by Driver'),
           isCompleted: currentStatus.index >= OrderStatus.accepted.index,
           isLast: false,
         ),
         _buildTimelineStep(
-          title: 'Picked Up',
-          subtitle: 'Driver partner picked up order',
+          title: context.l10n.tr('Picked Up'),
+          subtitle: context.l10n.tr('Driver partner picked up order'),
           isCompleted: currentStatus.index >= OrderStatus.pickedUp.index,
           isLast: false,
         ),
         _buildTimelineStep(
-          title: 'On Way',
-          subtitle: 'Order On Way',
+          title: context.l10n.tr('On Way'),
+          subtitle: context.l10n.tr('Order On Way'),
           isCompleted: currentStatus.index >= OrderStatus.onWay.index,
           isLast: false,
         ),
         _buildTimelineStep(
-          title: 'Delivered',
-          subtitle: 'Order delivered successfully',
+          title: context.l10n.tr('Delivered'),
+          subtitle: context.l10n.tr('Order delivered successfully'),
           isCompleted: currentStatus.index >= OrderStatus.delivered.index,
           isLast: true,
         ),
@@ -85,23 +81,23 @@ class OrderStatusTimeline extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: isCompleted ? AppColors.primary : Colors.white,
                     border: Border.all(
-                      color: isCompleted ? AppColors.primary : AppColors.subtitle,
+                      color: isCompleted
+                          ? AppColors.primary
+                          : AppColors.subtitle,
                       width: 1.5,
                     ),
                   ),
                   child: isCompleted
-                      ? const Icon(
-                          Icons.check,
-                          size: 14,
-                          color: Colors.white,
-                        )
+                      ? const Icon(Icons.check, size: 14, color: Colors.white)
                       : null,
                 ),
                 if (!isLast)
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: isCompleted ? AppColors.primary : AppColors.subtitle.withValues(alpha: .3),
+                      color: isCompleted
+                          ? AppColors.primary
+                          : AppColors.subtitle.withValues(alpha: .3),
                     ),
                   ),
               ],
@@ -127,7 +123,9 @@ class OrderStatusTimeline extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isCompleted ? AppColors.primary.withValues(alpha: .7) : AppColors.subtitle,
+                      color: isCompleted
+                          ? AppColors.primary.withValues(alpha: .7)
+                          : AppColors.subtitle,
                     ),
                   ),
                 ],

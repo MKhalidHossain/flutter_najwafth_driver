@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/complete_profile_page.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/pages/otp_verification_page.dart';
@@ -233,7 +234,10 @@ final class _MissingRouteArgumentPage extends StatelessWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text('Missing $argumentName.', textAlign: TextAlign.center),
+          child: Text(
+            context.l10n.missingArgument(argumentName),
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
     );

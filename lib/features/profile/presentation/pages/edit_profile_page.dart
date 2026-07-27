@@ -3,13 +3,13 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
-import 'package:flutter_najwafth_driver/core/utils/validators.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/auth/application/app_session_controller.dart';
 import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
 import 'package:flutter_najwafth_driver/features/user/domain/user_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   const EditProfilePage({super.key});
@@ -19,6 +19,8 @@ class EditProfilePage extends ConsumerStatefulWidget {
 }
 
 class _EditProfilePageState extends ConsumerState<EditProfilePage> {
+  static const _genderOptions = ['Male', 'Female', 'Other'];
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -28,6 +30,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _dobController = TextEditingController();
   final _ageController = TextEditingController();
   final _addressController = TextEditingController();
+  final _driverIdController = TextEditingController();
+  final _entrepreneurStatusController = TextEditingController();
   final _vehiclePlateController = TextEditingController();
 
   bool _isLoading = true;
@@ -36,6 +40,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   String? _errorMessage;
   String? _avatarUrl;
   XFile? _selectedAvatar;
+  String? _selectedGender;
+  DateTime? _selectedDob;
   late DriverVehicleType _vehicleType;
 
   @override
@@ -57,6 +63,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _dobController.dispose();
     _ageController.dispose();
     _addressController.dispose();
+    _driverIdController.dispose();
+    _entrepreneurStatusController.dispose();
     _vehiclePlateController.dispose();
     super.dispose();
   }
@@ -90,10 +98,23 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     _emailController.text = profile.email;
     _phoneController.text = profile.phone;
     _bioController.text = profile.bio;
-    _genderController.text = profile.gender ?? '';
-    _dobController.text = profile.dob?.toIso8601String().split('T').first ?? '';
-    _ageController.text = profile.age?.toString() ?? '';
+    _selectedGender = _readGender(profile.gender);
+    _genderController.text = _selectedGender ?? '';
+    _selectedDob = profile.dob == null
+        ? null
+        : DateTime(profile.dob!.year, profile.dob!.month, profile.dob!.day);
+    _dobController.text = _selectedDob == null
+        ? ''
+        : DateFormat.yMMMd(
+            Localizations.localeOf(context).toLanguageTag(),
+          ).format(_selectedDob!);
+    _ageController.text = _selectedDob == null
+        ? profile.age?.toString() ?? ''
+        : _calculateAge(_selectedDob!).toString();
     _addressController.text = profile.address;
+    _driverIdController.text = profile.driverId ?? session.driverId ?? '';
+    _entrepreneurStatusController.text =
+        profile.entrepreneurStatus ?? session.entrepreneurStatus ?? '';
     _avatarUrl = profile.avatarUrl;
     _selectedAvatar = null;
 
@@ -113,9 +134,15 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       'name': _nameController.text.trim(),
       'phone': _phoneController.text.trim(),
       'bio': _bioController.text.trim(),
-      'gender': _genderController.text.trim(),
-      'dob': _dobController.text.trim(),
+      'gender': _genderController.text.trim().toLowerCase(),
+      'dob': _selectedDob == null
+          ? ''
+          : DateFormat('yyyy-MM-dd').format(_selectedDob!),
       'address': _addressController.text.trim(),
+      'driverId': _driverIdController.text.trim(),
+      'entrepreneurStatus': _entrepreneurStatusController.text.trim(),
+      'vehicleType': _vehicleType.name,
+      'vehiclePlateNumber': _vehiclePlateController.text.trim(),
     };
 
     final age = int.tryParse(_ageController.text.trim());
@@ -139,7 +166,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
       return;
     }
 
@@ -152,21 +179,25 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           phone: updatedProfile.phone,
         );
 
-    // TODO: PATCH /api/v1/driver/profile is needed for vehicle details.
     await ref
         .read(appSessionControllerProvider.notifier)
-        .updateVehicleDetailsLocally(
+        .completeProfile(
           vehicleType:
               _readVehicleType(updatedProfile.vehicleType) ?? _vehicleType,
+          driverId: updatedProfile.driverId ?? _driverIdController.text.trim(),
+          entrepreneurStatus:
+              updatedProfile.entrepreneurStatus ??
+              _entrepreneurStatusController.text.trim(),
           vehiclePlateNumber:
               updatedProfile.vehiclePlateNumber ??
               _vehiclePlateController.text.trim(),
+          avatarPreset: ref.read(appSessionControllerProvider).avatarPreset,
         );
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated successfully.')),
+      SnackBar(content: Text(context.l10n.tr('Profile updated successfully.'))),
     );
     Navigator.pop(context);
   }
@@ -194,15 +225,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     } on MissingPluginException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Image picker is not ready. Please rebuild the app.'),
+        SnackBar(
+          content: Text(
+            context.l10n.tr(
+              'Image picker is not ready. Please rebuild the app.',
+            ),
+          ),
         ),
       );
     } on Object {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Could not pick image.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.tr('Could not pick image.'))),
+      );
     } finally {
       if (mounted) setState(() => _isPickingAvatar = false);
     }
@@ -212,18 +247,61 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     final code = error.code.toLowerCase();
     final message = error.message?.toLowerCase() ?? '';
     if (code.contains('denied') || message.contains('denied')) {
-      return 'Photo access is denied. Enable Photos permission in Settings.';
+      return context.l10n.tr(
+        'Photo access is denied. Enable Photos permission in Settings.',
+      );
     }
-    if (code == 'already_active') return 'Image picker is already open.';
+    if (code == 'already_active') {
+      return context.l10n.tr('Image picker is already open.');
+    }
     if (code.contains('plugin') ||
         message.contains('missingplugin') ||
         message.contains('unable to establish connection on channel') ||
         message.contains('image_picker_ios')) {
-      return 'Image picker is not ready. Please rebuild the app.';
+      return context.l10n.tr(
+        'Image picker is not ready. Please rebuild the app.',
+      );
     }
     return error.message?.isNotEmpty == true
         ? error.message!
-        : 'Could not pick image.';
+        : context.l10n.tr('Could not pick image.');
+  }
+
+  Future<void> _selectDateOfBirth() async {
+    FocusScope.of(context).unfocus();
+
+    final today = DateUtils.dateOnly(DateTime.now());
+    final initialDate = _selectedDob ?? DateTime(today.year - 18);
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1900),
+      lastDate: today,
+      initialDatePickerMode: DatePickerMode.year,
+      helpText: context.l10n.tr('Select date of birth'),
+      cancelText: context.l10n.tr('Cancel'),
+      confirmText: context.l10n.tr('Select'),
+    );
+
+    if (selectedDate == null || !mounted) return;
+
+    setState(() {
+      _selectedDob = DateUtils.dateOnly(selectedDate);
+      _dobController.text = DateFormat.yMMMd(
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(_selectedDob!);
+      _ageController.text = _calculateAge(_selectedDob!).toString();
+    });
+  }
+
+  int _calculateAge(DateTime dateOfBirth) {
+    final today = DateUtils.dateOnly(DateTime.now());
+    var age = today.year - dateOfBirth.year;
+    final birthdayHasPassed =
+        today.month > dateOfBirth.month ||
+        (today.month == dateOfBirth.month && today.day >= dateOfBirth.day);
+    if (!birthdayHasPassed) age--;
+    return age;
   }
 
   DriverVehicleType? _readVehicleType(String? value) {
@@ -237,8 +315,20 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     };
   }
 
+  String? _readGender(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) return null;
+
+    for (final option in _genderOptions) {
+      if (option.toLowerCase() == normalized) return option;
+    }
+
+    return 'Other';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -252,9 +342,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(
+        title: Text(
+          l10n.tr('Edit Profile'),
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: AppColors.title,
@@ -270,6 +360,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   Widget _buildForm() {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Form(
@@ -322,83 +413,141 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             TextFormField(
               controller: _nameController,
               textInputAction: TextInputAction.next,
-              validator: (value) => Validators.required(value, label: 'Name'),
-              decoration: const InputDecoration(hintText: 'Name'),
+              validator: (value) => Validators.required(
+                value,
+                label: l10n.tr('Name'),
+                l10n: l10n,
+              ),
+              decoration: InputDecoration(hintText: l10n.tr('Name')),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _emailController,
               readOnly: true,
-              decoration: const InputDecoration(hintText: 'Email'),
+              decoration: InputDecoration(hintText: l10n.tr('Email')),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               textInputAction: TextInputAction.next,
-              validator: (value) => Validators.required(value, label: 'Phone'),
-              decoration: const InputDecoration(hintText: 'Phone'),
+              validator: (value) => Validators.required(
+                value,
+                label: l10n.tr('Phone'),
+                l10n: l10n,
+              ),
+              decoration: InputDecoration(hintText: l10n.tr('Phone')),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _bioController,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Bio'),
+              decoration: InputDecoration(hintText: l10n.tr('Bio')),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _genderController,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Gender'),
+            ButtonTheme(
+              alignedDropdown: true,
+              child: DropdownButtonFormField<String>(
+                initialValue: _selectedGender,
+                isExpanded: true,
+                borderRadius: BorderRadius.circular(14),
+                dropdownColor: Colors.white,
+                decoration: InputDecoration(hintText: l10n.tr('Gender')),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                items: _genderOptions
+                    .map(
+                      (gender) => DropdownMenuItem<String>(
+                        value: gender,
+                        child: Text(l10n.tr(gender)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedGender = value;
+                    _genderController.text = value ?? '';
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _dobController,
-              keyboardType: TextInputType.datetime,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Date of Birth'),
+              readOnly: true,
+              canRequestFocus: false,
+              onTap: _selectDateOfBirth,
+              decoration: InputDecoration(
+                hintText: l10n.tr('Date of Birth'),
+                suffixIcon: const Icon(Icons.calendar_month_outlined),
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _ageController,
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.next,
-              validator: (value) {
-                final text = value?.trim() ?? '';
-                if (text.isEmpty || int.tryParse(text) != null) return null;
-                return 'Age must be a number.';
-              },
-              decoration: const InputDecoration(hintText: 'Age'),
+              readOnly: true,
+              canRequestFocus: false,
+              decoration: InputDecoration(
+                hintText: l10n.tr('Age'),
+                suffixIcon: const Icon(Icons.cake_outlined),
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _addressController,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Address'),
+              decoration: InputDecoration(hintText: l10n.tr('Address')),
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<DriverVehicleType>(
-              initialValue: _vehicleType,
-              decoration: const InputDecoration(hintText: 'Vehicle Type'),
-              items: const [
-                DropdownMenuItem(
-                  value: DriverVehicleType.bike,
-                  child: Text('Bike'),
-                ),
-                DropdownMenuItem(
-                  value: DriverVehicleType.electricBike,
-                  child: Text('Electric Bike'),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) setState(() => _vehicleType = value);
-              },
+            TextFormField(
+              controller: _driverIdController,
+              textInputAction: TextInputAction.next,
+              validator: (value) =>
+                  Validators.required(value, label: l10n.tr('ID'), l10n: l10n),
+              decoration: InputDecoration(hintText: l10n.tr('ID')),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _entrepreneurStatusController,
+              textInputAction: TextInputAction.next,
+              validator: (value) => Validators.required(
+                value,
+                label: l10n.tr('Entrepreneur status'),
+                l10n: l10n,
+              ),
+              decoration: InputDecoration(
+                hintText: l10n.tr('Entrepreneur Status'),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ButtonTheme(
+              alignedDropdown: true,
+              child: DropdownButtonFormField<DriverVehicleType>(
+                initialValue: _vehicleType,
+                isExpanded: true,
+                borderRadius: BorderRadius.circular(14),
+                dropdownColor: Colors.white,
+                decoration: InputDecoration(hintText: l10n.tr('Vehicle Type')),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                items: [
+                  DropdownMenuItem(
+                    value: DriverVehicleType.bike,
+                    child: Text(l10n.tr('Bike')),
+                  ),
+                  DropdownMenuItem(
+                    value: DriverVehicleType.electricBike,
+                    child: Text(l10n.tr('Electric Bike')),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => _vehicleType = value);
+                },
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _vehiclePlateController,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(hintText: 'Vehicle Plate'),
+              decoration: InputDecoration(hintText: l10n.tr('Vehicle Plate')),
               onFieldSubmitted: (_) => _saveProfile(),
             ),
             const SizedBox(height: 24),
@@ -418,7 +567,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Save'),
+                    : Text(l10n.tr('Save')),
               ),
             ),
           ],
@@ -457,7 +606,10 @@ class _ErrorState extends StatelessWidget {
               style: const TextStyle(color: AppColors.subtitle),
             ),
             const SizedBox(height: 12),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            TextButton(
+              onPressed: onRetry,
+              child: Text(context.l10n.tr('Retry')),
+            ),
           ],
         ),
       ),

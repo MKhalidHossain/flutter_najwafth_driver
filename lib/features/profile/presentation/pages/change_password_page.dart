@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
-import 'package:flutter_najwafth_driver/core/utils/validators.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -47,29 +46,37 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
       return;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password changed successfully.')),
+      SnackBar(
+        content: Text(context.l10n.tr('Password changed successfully.')),
+      ),
     );
     Navigator.pop(context);
   }
 
   String? _validateNewPassword(String? value) {
-    return Validators.minLength(value, 8, label: 'New password');
+    return Validators.minLength(
+      value,
+      8,
+      label: context.l10n.tr('New Password'),
+      l10n: context.l10n,
+    );
   }
 
   String? _validateConfirmPassword(String? value) {
     final requiredMessage = Validators.required(
       value,
-      label: 'Confirm password',
+      label: context.l10n.tr('Confirm Password'),
+      l10n: context.l10n,
     );
     if (requiredMessage != null) return requiredMessage;
 
     if (value != _newPasswordController.text) {
-      return 'New password and confirm password must match.';
+      return context.l10n.tr('New password and confirm password must match.');
     }
 
     return null;
@@ -90,9 +97,9 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Change Password',
-          style: TextStyle(
+        title: Text(
+          context.l10n.tr('Change Password'),
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: AppColors.title,
@@ -110,9 +117,14 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                 controller: _currentPasswordController,
                 obscureText: true,
                 textInputAction: TextInputAction.next,
-                validator: (value) =>
-                    Validators.required(value, label: 'Current password'),
-                decoration: const InputDecoration(hintText: 'Current Password'),
+                validator: (value) => Validators.required(
+                  value,
+                  label: context.l10n.tr('Current Password'),
+                  l10n: context.l10n,
+                ),
+                decoration: InputDecoration(
+                  hintText: context.l10n.tr('Current Password'),
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -120,7 +132,9 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                 obscureText: true,
                 textInputAction: TextInputAction.next,
                 validator: _validateNewPassword,
-                decoration: const InputDecoration(hintText: 'New Password'),
+                decoration: InputDecoration(
+                  hintText: context.l10n.tr('New Password'),
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -128,8 +142,8 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                 obscureText: true,
                 textInputAction: TextInputAction.done,
                 validator: _validateConfirmPassword,
-                decoration: const InputDecoration(
-                  hintText: 'Confirm New Password',
+                decoration: InputDecoration(
+                  hintText: context.l10n.tr('Confirm New Password'),
                 ),
                 onFieldSubmitted: (_) => _savePassword(),
               ),
@@ -150,7 +164,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Save'),
+                      : Text(context.l10n.tr('Save')),
                 ),
               ),
             ],

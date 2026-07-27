@@ -1,5 +1,13 @@
 import 'package:flutter/foundation.dart';
 
+const bool kUseLiveServer = bool.fromEnvironment(
+  'USE_LIVE_SERVER',
+  defaultValue: true,
+);
+
+const String _liveBaseUrl = 'https://api.booksonwheeels.com';
+const String _apiBaseUrlOverride = String.fromEnvironment('API_BASE_URL');
+
 enum AppEnvironment { development, staging, production }
 
 final class AppConfig {
@@ -13,9 +21,11 @@ final class AppConfig {
 
   factory AppConfig.development() {
     return AppConfig(
-      appName: 'Najwafth Driver',
-      environment: AppEnvironment.development,
-      baseUrl: _developmentBaseUrl,
+      appName: 'Books on Wheels Driver',
+      environment: kUseLiveServer
+          ? AppEnvironment.production
+          : AppEnvironment.development,
+      baseUrl: _resolveBaseUrl(),
     );
   }
 
@@ -27,13 +37,13 @@ final class AppConfig {
 
   bool get isDevelopment => environment == AppEnvironment.development;
   bool get isProduction => environment == AppEnvironment.production;
+}
 
-  static String get _developmentBaseUrl {
-    const dartDefineUrl = String.fromEnvironment('API_BASE_URL');
-    if (dartDefineUrl.isNotEmpty) return dartDefineUrl;
+String _resolveBaseUrl() {
+  if (_apiBaseUrlOverride.isNotEmpty) return _apiBaseUrlOverride;
+  if (kUseLiveServer) return _liveBaseUrl;
 
-    return defaultTargetPlatform == TargetPlatform.android
-        ? 'http://10.0.2.2:5000'
-        : 'http://localhost:5001';
-  }
+  return defaultTargetPlatform == TargetPlatform.android
+      ? 'http://10.0.2.2:5002'
+      : 'http://localhost:5002';
 }

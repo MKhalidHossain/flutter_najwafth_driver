@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
-import 'package:flutter_najwafth_driver/core/errors/app_failure.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/widgets/history_order_card.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/data/driver_api.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/domain/driver_request.dart';
@@ -122,9 +121,9 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'History',
-          style: TextStyle(
+        title: Text(
+          context.l10n.tr('History'),
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: AppColors.title,
@@ -161,7 +160,7 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
                 const SizedBox(height: 20),
                 FilledButton(
                   onPressed: () => _loadHistory(reset: true),
-                  child: const Text('Retry'),
+                  child: Text(context.l10n.tr('Retry')),
                 ),
               ],
             ),
@@ -191,19 +190,22 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'No delivery history',
-                    style: TextStyle(
+                  Text(
+                    context.l10n.tr('No delivery history'),
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                       color: AppColors.title,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Completed deliveries will appear here.',
+                  Text(
+                    context.l10n.tr('Completed deliveries will appear here.'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: AppColors.subtitle),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.subtitle,
+                    ),
                   ),
                 ],
               ),
@@ -227,10 +229,10 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
             : request.id;
         final fromAddress = request.shopName.isNotEmpty
             ? request.shopName
-            : 'Unknown Shop';
+            : context.l10n.tr('Unknown Shop');
         final toAddress = request.location.isNotEmpty
             ? request.location
-            : 'Unknown Location';
+            : context.l10n.tr('Unknown Location');
         final total = request.price ?? request.totalAmount ?? 0.0;
 
         return HistoryOrderCard(
@@ -257,7 +259,7 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
       child: Center(
         child: OutlinedButton(
           onPressed: () => _loadHistory(),
-          child: const Text('Load More'),
+          child: Text(context.l10n.tr('Load More')),
         ),
       ),
     );

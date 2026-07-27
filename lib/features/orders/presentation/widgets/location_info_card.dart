@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 
 class LocationInfoCard extends StatelessWidget {
   const LocationInfoCard({
@@ -103,18 +103,18 @@ class LocationInfoCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.phone_outlined,
                           size: 16,
                           color: AppColors.primary,
                         ),
-                        SizedBox(width: 6),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            'Contact Information',
-                            style: TextStyle(
+                            context.l10n.tr('Contact Information'),
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.title,
@@ -129,11 +129,14 @@ class LocationInfoCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildInfoRow('Order Date:', orderDate),
+                          _buildInfoRow(
+                            context.l10n.tr('Order Date:'),
+                            orderDate,
+                          ),
                           const SizedBox(height: 4),
-                          _buildInfoRow('Phone:', phone),
+                          _buildInfoRow(context.l10n.tr('Phone:'), phone),
                           const SizedBox(height: 4),
-                          _buildInfoRow('Order ID:', orderId),
+                          _buildInfoRow(context.l10n.tr('Order ID:'), orderId),
                         ],
                       ),
                     ),

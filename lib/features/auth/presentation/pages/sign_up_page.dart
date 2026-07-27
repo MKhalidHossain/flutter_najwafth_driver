@@ -43,15 +43,17 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
   }
 
   String? _validateConfirmPassword(String? value) {
+    final l10n = context.l10n;
     final passwordError = Validators.minLength(
       value,
       6,
-      label: 'Confirm password',
+      label: l10n.tr('Confirm Password'),
+      l10n: l10n,
     );
     if (passwordError != null) return passwordError;
 
     if (value!.trim() != _passwordController.text.trim()) {
-      return 'Passwords do not match.';
+      return l10n.tr('Passwords do not match.');
     }
     return null;
   }
@@ -74,7 +76,7 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
     if (errorMessage != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(errorMessage))));
       return;
     }
 
@@ -92,6 +94,7 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isLoading = ref.watch(
       appSessionControllerProvider.select((s) => s.isLoading),
     );
@@ -105,54 +108,65 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
             const SizedBox(height: 8),
             const DriverBrandHeader(width: 240),
             const SizedBox(height: 24),
-            const DriverIntro(
-              title: "Let's Get Started!",
-              subtitle: 'Create an account',
+            DriverIntro(
+              title: l10n.tr("Let's Get Started!"),
+              subtitle: l10n.tr('Create an account'),
               centered: true,
             ),
             const SizedBox(height: 28),
             DriverTextField(
               controller: _nameController,
-              label: 'User Name',
-              hintText: 'Enter your Full Name',
+              label: l10n.tr('User Name'),
+              hintText: l10n.tr('Enter your Full Name'),
               prefixIcon: Icons.person_outline_rounded,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.name],
-              validator: (value) => Validators.required(value, label: 'Name'),
+              validator: (value) => Validators.required(
+                value,
+                label: l10n.tr('Name'),
+                l10n: l10n,
+              ),
             ),
             const SizedBox(height: 18),
             DriverTextField(
               controller: _emailController,
-              label: 'Your Email',
-              hintText: 'Enter your Email',
+              label: l10n.tr('Your Email'),
+              hintText: l10n.tr('Enter your Email'),
               prefixIcon: Icons.mail_outline_rounded,
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.email],
-              validator: Validators.email,
+              validator: (value) => Validators.email(value, l10n: l10n),
             ),
             const SizedBox(height: 18),
             DriverTextField(
               controller: _phoneController,
-              label: 'Phone Number',
-              hintText: 'Enter your phone number',
+              label: l10n.tr('Phone Number'),
+              hintText: l10n.tr('Enter your phone number'),
               prefixIcon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.telephoneNumber],
-              validator: (value) =>
-                  Validators.required(value, label: 'Phone number'),
+              validator: (value) => Validators.required(
+                value,
+                label: l10n.tr('Phone Number'),
+                l10n: l10n,
+              ),
             ),
             const SizedBox(height: 18),
             DriverTextField(
               controller: _passwordController,
-              label: 'Password',
-              hintText: 'Enter your Password',
+              label: l10n.tr('Password'),
+              hintText: l10n.tr('Enter your Password'),
               prefixIcon: Icons.lock_outline_rounded,
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.next,
-              validator: (value) =>
-                  Validators.minLength(value, 6, label: 'Password'),
+              validator: (value) => Validators.minLength(
+                value,
+                6,
+                label: l10n.tr('Password'),
+                l10n: l10n,
+              ),
               suffixIcon: IconButton(
                 onPressed: () {
                   setState(() => _obscurePassword = !_obscurePassword);
@@ -167,8 +181,8 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
             const SizedBox(height: 18),
             DriverTextField(
               controller: _confirmPasswordController,
-              label: 'Confirm Password',
-              hintText: 'Enter Confirm Password',
+              label: l10n.tr('Confirm Password'),
+              hintText: l10n.tr('Enter Confirm Password'),
               prefixIcon: Icons.lock_outline_rounded,
               obscureText: _obscureConfirmPassword,
               textInputAction: TextInputAction.done,
@@ -189,7 +203,7 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
             ),
             const SizedBox(height: 24),
             DriverPrimaryButton(
-              label: 'Sign up',
+              label: l10n.tr('Sign up'),
               onPressed: isLoading ? null : _submit,
               isLoading: isLoading,
             ),
@@ -200,7 +214,7 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
               spacing: 4,
               children: [
                 Text(
-                  'Already have an account?',
+                  l10n.tr('Already have an account?'),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: AppColors.title,
@@ -209,7 +223,7 @@ final class _SignUpPageState extends ConsumerState<SignUpPage> {
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
                   child: Text(
-                    'Sign In Here',
+                    l10n.tr('Sign In Here'),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w500,
                       color: AppColors.link,
