@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_najwafth_driver/core/localization/app_localizations.dart';
 import 'package:flutter_najwafth_driver/core/theme/app_breakpoints.dart';
 
 extension BuildContextX on BuildContext {
@@ -6,6 +7,7 @@ extension BuildContextX on BuildContext {
   TextTheme get textTheme => theme.textTheme;
   ColorScheme get colorScheme => theme.colorScheme;
   MediaQueryData get mediaQuery => MediaQuery.of(this);
+  AppLocalizations get l10n => AppLocalizations.of(this);
 
   Size get screenSize => mediaQuery.size;
   double get screenWidth => screenSize.width;

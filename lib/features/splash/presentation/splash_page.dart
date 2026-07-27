@@ -51,7 +51,7 @@ final class _SplashPageState extends ConsumerState<SplashPage> {
       return;
     }
 
-    if (!session.profileCompleted) {
+    if (session.shouldShowCompleteProfile) {
       Navigator.of(context).pushReplacementNamed(
         AppRoutes.completeProfile,
         arguments: CompleteProfileRouteArgs(

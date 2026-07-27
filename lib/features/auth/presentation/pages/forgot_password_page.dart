@@ -44,7 +44,7 @@ final class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     if (failure != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
       return;
     }
 
@@ -55,6 +55,7 @@ final class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return DriverScaffold(
       child: Form(
         key: _formKey,
@@ -63,25 +64,25 @@ final class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             const SizedBox(height: 72),
             const DriverBrandHeader(width: 240),
             const SizedBox(height: 24),
-            const DriverIntro(
-              title: 'Reset password',
-              subtitle: 'Enter your email to receive the OTP',
+            DriverIntro(
+              title: l10n.tr('Reset password'),
+              subtitle: l10n.tr('Enter your email to receive the OTP'),
               centered: true,
             ),
             const SizedBox(height: 24),
             DriverTextField(
               controller: _emailController,
-              label: 'Your Email',
-              hintText: 'Enter your Email',
+              label: l10n.tr('Your Email'),
+              hintText: l10n.tr('Enter your Email'),
               prefixIcon: Icons.mail_outline_rounded,
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.done,
-              validator: Validators.email,
+              validator: (value) => Validators.email(value, l10n: l10n),
               onFieldSubmitted: (_) => _submit(),
             ),
             const SizedBox(height: 24),
             DriverPrimaryButton(
-              label: 'Send OTP',
+              label: l10n.tr('Send OTP'),
               onPressed: _isLoading ? null : _submit,
               isLoading: _isLoading,
             ),

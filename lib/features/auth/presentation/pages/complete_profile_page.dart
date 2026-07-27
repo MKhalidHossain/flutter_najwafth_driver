@@ -1,8 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
 import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/auth/application/app_session_controller.dart';
 import 'package:flutter_najwafth_driver/features/auth/presentation/widgets/auth_ui.dart';
+import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final class CompleteProfilePage extends ConsumerStatefulWidget {
@@ -32,6 +34,7 @@ final class _CompleteProfilePageState
   late final TextEditingController _plateNumberController;
   late DriverVehicleType _selectedVehicleType;
   late DriverAvatarPreset _avatarPreset;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -71,9 +74,9 @@ final class _CompleteProfilePageState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Choose a profile style',
-                  style: TextStyle(
+                Text(
+                  context.l10n.tr('Choose a profile style'),
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
                     color: AppColors.title,
@@ -91,7 +94,7 @@ final class _CompleteProfilePageState
                       ),
                     ),
                   ),
-                  title: const Text('Use initials avatar'),
+                  title: Text(context.l10n.tr('Use initials avatar')),
                   onTap: () {
                     Navigator.of(context).pop(DriverAvatarPreset.initials);
                   },
@@ -104,7 +107,7 @@ final class _CompleteProfilePageState
                       color: AppColors.primary,
                     ),
                   ),
-                  title: const Text('Use bike badge'),
+                  title: Text(context.l10n.tr('Use bike badge')),
                   onTap: () {
                     Navigator.of(context).pop(DriverAvatarPreset.bicycle);
                   },
@@ -117,7 +120,7 @@ final class _CompleteProfilePageState
                       color: AppColors.primary,
                     ),
                   ),
-                  title: const Text('Use books badge'),
+                  title: Text(context.l10n.tr('Use books badge')),
                   onTap: () {
                     Navigator.of(context).pop(DriverAvatarPreset.books);
                   },
@@ -127,7 +130,7 @@ final class _CompleteProfilePageState
                     backgroundColor: Color(0xFFF3EFEA),
                     child: Icon(Icons.close_rounded, color: AppColors.subtitle),
                   ),
-                  title: const Text('Clear selection'),
+                  title: Text(context.l10n.tr('Clear selection')),
                   onTap: () {
                     Navigator.of(context).pop(DriverAvatarPreset.none);
                   },
@@ -149,16 +152,45 @@ final class _CompleteProfilePageState
     if (!isValid) {
       return;
     }
+    if (_isSaving) return;
 
-    // TODO: PATCH /api/v1/driver/profile is needed to persist driver vehicle
-    // details, driver ID, entrepreneur status, and avatar preference.
+    setState(() => _isSaving = true);
+
+    final driverId = _driverIdController.text.trim();
+    final entrepreneurStatus = _entrepreneurStatusController.text.trim();
+    final vehiclePlateNumber = _plateNumberController.text.trim();
+
+    final result = await ref
+        .read(userApiProvider)
+        .updateCurrentUser(
+          FormData.fromMap({
+            'driverId': driverId,
+            'entrepreneurStatus': entrepreneurStatus,
+            'vehicleType': _selectedVehicleType.name,
+            'vehiclePlateNumber': vehiclePlateNumber,
+          }),
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.tr(failure.message))));
+      return;
+    }
+
     await ref
         .read(appSessionControllerProvider.notifier)
         .completeProfile(
           vehicleType: _selectedVehicleType,
-          driverId: _driverIdController.text.trim(),
-          entrepreneurStatus: _entrepreneurStatusController.text.trim(),
-          vehiclePlateNumber: _plateNumberController.text.trim(),
+          driverId: driverId,
+          entrepreneurStatus: entrepreneurStatus,
+          vehiclePlateNumber: vehiclePlateNumber,
           avatarPreset: _avatarPreset,
         );
 
@@ -172,7 +204,9 @@ final class _CompleteProfilePageState
         (route) => false,
         arguments: SignInRouteArgs(
           prefilledEmail: widget.email,
-          successMessage: 'Profile saved. Sign in to continue.',
+          successMessage: context.l10n.tr(
+            'Profile saved. Sign in to continue.',
+          ),
         ),
       );
       return;
@@ -185,6 +219,7 @@ final class _CompleteProfilePageState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return DriverScaffold(
       child: Form(
         key: _formKey,
@@ -192,7 +227,7 @@ final class _CompleteProfilePageState
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
           children: [
             Text(
-              'Complete Profile',
+              l10n.tr('Complete Profile'),
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
@@ -200,7 +235,7 @@ final class _CompleteProfilePageState
             ),
             const SizedBox(height: 8),
             Text(
-              'Just a few more details to get you on the road',
+              l10n.tr('Just a few more details to get you on the road'),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontSize: 16,
                 color: AppColors.subtitle,
@@ -271,12 +306,12 @@ final class _CompleteProfilePageState
               ),
             ),
             const SizedBox(height: 28),
-            const DriverFieldLabel("Driver's Use"),
+            DriverFieldLabel(l10n.tr("Driver's Use")),
             const SizedBox(height: 12),
             Row(
               children: [
                 DriverVehicleCard(
-                  label: 'Bike',
+                  label: l10n.tr('Bike'),
                   icon: Icons.pedal_bike_rounded,
                   selected: _selectedVehicleType == DriverVehicleType.bike,
                   onTap: () {
@@ -287,7 +322,7 @@ final class _CompleteProfilePageState
                 ),
                 const SizedBox(width: 16),
                 DriverVehicleCard(
-                  label: 'Electric Bike',
+                  label: l10n.tr('Electric Bike'),
                   icon: Icons.electric_bike_rounded,
                   selected:
                       _selectedVehicleType == DriverVehicleType.electricBike,
@@ -303,30 +338,38 @@ final class _CompleteProfilePageState
             const SizedBox(height: 28),
             DriverTextField(
               controller: _driverIdController,
-              label: 'ID',
+              label: l10n.tr('ID'),
               hintText: 'xxxxxxxx',
               textInputAction: TextInputAction.next,
-              validator: (value) => Validators.required(value, label: 'ID'),
+              validator: (value) =>
+                  Validators.required(value, label: l10n.tr('ID'), l10n: l10n),
             ),
             const SizedBox(height: 24),
             DriverTextField(
               controller: _entrepreneurStatusController,
-              label: 'Entrepreneur Status',
+              label: l10n.tr('Entrepreneur Status'),
               hintText: 'xxxxxxxx',
               textInputAction: TextInputAction.next,
-              validator: (value) =>
-                  Validators.required(value, label: 'Entrepreneur status'),
+              validator: (value) => Validators.required(
+                value,
+                label: l10n.tr('Entrepreneur status'),
+                l10n: l10n,
+              ),
             ),
             const SizedBox(height: 24),
             DriverTextField(
               controller: _plateNumberController,
-              label: 'Vehicle Plate Number (Optional)',
+              label: l10n.tr('Vehicle Plate Number (Optional)'),
               hintText: 'ABC-123',
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _submit(),
             ),
             const SizedBox(height: 30),
-            DriverPrimaryButton(label: 'Save & Continue', onPressed: _submit),
+            DriverPrimaryButton(
+              label: l10n.tr('Save & Continue'),
+              isLoading: _isSaving,
+              onPressed: _submit,
+            ),
             const SizedBox(height: 20),
           ],
         ),

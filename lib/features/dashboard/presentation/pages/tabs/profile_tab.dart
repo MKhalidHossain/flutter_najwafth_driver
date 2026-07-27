@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
-import 'package:flutter_najwafth_driver/core/errors/app_failure.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/auth/application/app_session_controller.dart';
 import 'package:flutter_najwafth_driver/features/notifications/data/notification_api.dart';
 import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
@@ -57,7 +56,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     final session = ref.watch(appSessionControllerProvider);
     final displayName = _profile?.name.isNotEmpty == true
         ? _profile!.name
-        : session.userName ?? 'Driver';
+        : session.userName ?? context.l10n.tr('Driver');
     final email = _profile?.email.isNotEmpty == true
         ? _profile!.email
         : session.email;
@@ -96,16 +95,28 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     String? role,
     String? avatarUrl,
   ) {
-    final vehicleLabel = session.vehicleType == DriverVehicleType.electricBike
-        ? 'E-Bike'
-        : 'Bike';
-    final vehicleIcon = session.vehicleType == DriverVehicleType.electricBike
+    final backendVehicleType = _readVehicleType(_profile?.vehicleType);
+    final vehicleType = backendVehicleType ?? session.vehicleType;
+    final vehicleLabel = vehicleType == DriverVehicleType.electricBike
+        ? context.l10n.tr('Electric Bike')
+        : context.l10n.tr('Bike');
+    final vehicleIcon = vehicleType == DriverVehicleType.electricBike
         ? Icons.electric_bike
         : Icons.directions_bike;
-    final vehicleId = session.vehiclePlateNumber?.isNotEmpty == true
-        ? session.vehiclePlateNumber!
+    final driverId = _profile?.driverId?.isNotEmpty == true
+        ? _profile!.driverId!
+        : session.driverId?.isNotEmpty == true
+        ? session.driverId!
+        : 'N/A';
+    final entrepreneurStatus = _profile?.entrepreneurStatus?.isNotEmpty == true
+        ? _profile!.entrepreneurStatus!
         : session.entrepreneurStatus?.isNotEmpty == true
         ? session.entrepreneurStatus!
+        : 'N/A';
+    final plateNumber = _profile?.vehiclePlateNumber?.isNotEmpty == true
+        ? _profile!.vehiclePlateNumber!
+        : session.vehiclePlateNumber?.isNotEmpty == true
+        ? session.vehiclePlateNumber!
         : 'N/A';
 
     return Container(
@@ -234,15 +245,35 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Center(
-                  child: Text(
-                    'Vehicle Details',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          context.l10n.tr('Driver Details'),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    // IconButton(
+                    //   tooltip: context.l10n.tr('Edit driver details'),
+                    //   onPressed: () async {
+                    //     await Navigator.pushNamed(
+                    //       context,
+                    //       AppRoutes.editProfile,
+                    //     );
+                    //     if (mounted) _loadProfile();
+                    //   },
+                    //   icon: const Icon(
+                    //     Icons.edit_outlined,
+                    //     color: AppColors.primary,
+                    //   ),
+                    // ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 const Divider(color: AppColors.border),
@@ -254,52 +285,24 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          RichText(
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            text: TextSpan(
-                              children: [
-                                const TextSpan(
-                                  text: 'Vehicle: ',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.subtitle,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: vehicleLabel,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          _DriverDetailLine(
+                            label: context.l10n.tr('Vehicle'),
+                            value: vehicleLabel,
                           ),
                           const SizedBox(height: 12),
-                          RichText(
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            text: TextSpan(
-                              children: [
-                                const TextSpan(
-                                  text: 'ID: ',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.subtitle,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: vehicleId,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          _DriverDetailLine(
+                            label: context.l10n.tr('ID'),
+                            value: driverId,
+                          ),
+                          const SizedBox(height: 12),
+                          _DriverDetailLine(
+                            label: context.l10n.tr('Status'),
+                            value: entrepreneurStatus,
+                          ),
+                          const SizedBox(height: 12),
+                          _DriverDetailLine(
+                            label: context.l10n.tr('Plate'),
+                            value: plateNumber,
                           ),
                         ],
                       ),
@@ -340,6 +343,17 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     );
   }
 
+  DriverVehicleType? _readVehicleType(String? value) {
+    return switch (value) {
+      'electricBike' ||
+      'electric_bike' ||
+      'E-Bike' ||
+      'Electric Bike' => DriverVehicleType.electricBike,
+      'bike' || 'Bike' => DriverVehicleType.bike,
+      _ => null,
+    };
+  }
+
   Widget _buildErrorBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -355,7 +369,10 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           ),
           TextButton(
             onPressed: _loadProfile,
-            child: const Text('Retry', style: TextStyle(fontSize: 13)),
+            child: Text(
+              context.l10n.tr('Retry'),
+              style: const TextStyle(fontSize: 13),
+            ),
           ),
         ],
       ),
@@ -367,43 +384,50 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
       children: [
         _buildMenuItem(
           icon: Icons.edit_outlined,
-          title: 'Edit Profile',
+          title: context.l10n.tr('Edit Profile'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
         ),
         _buildMenuItem(
           icon: Icons.lock_outline,
-          title: 'Change Password',
+          title: context.l10n.tr('Change Password'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.changePassword),
         ),
         _buildMenuItem(
           icon: Icons.info_outline,
-          title: 'About App',
+          title: context.l10n.tr('About App'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.aboutApp),
         ),
         _buildMenuItem(
           icon: Icons.description_outlined,
-          title: 'Privacy Policy',
+          title: context.l10n.tr('Privacy Policy'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.privacyPolicy),
         ),
         _buildMenuItem(
           icon: Icons.block,
-          title: 'Terms & Conditions',
+          title: context.l10n.tr('Terms & Conditions'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.termsConditions),
         ),
         _buildMenuItem(
           icon: Icons.language,
-          title: 'Choose Language',
+          title: context.l10n.tr('Choose Language'),
           onTap: () => Navigator.pushNamed(context, AppRoutes.chooseLanguage),
         ),
         _buildMenuItem(
           icon: Icons.notifications_none,
-          title: 'Notifications',
+          title: context.l10n.tr('Notifications'),
           trailing: _NotificationTrailing(count: _unreadNotificationCount),
           onTap: () => Navigator.pushNamed(context, AppRoutes.notifications),
         ),
         _buildMenuItem(
+          icon: Icons.person_remove_outlined,
+          title: context.l10n.tr('Delete Account'),
+          titleColor: const Color(0xFFB42318),
+          iconColor: const Color(0xFFB42318),
+          onTap: () => _showDeleteAccountDialog(context),
+        ),
+        _buildMenuItem(
           icon: Icons.logout,
-          title: 'Log Out',
+          title: context.l10n.tr('Log Out'),
           titleColor: AppColors.primary,
           iconColor: AppColors.primary,
           onTap: () => _showLogoutDialog(context),
@@ -433,9 +457,9 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Are you sure to log out?',
-                  style: TextStyle(
+                Text(
+                  context.l10n.tr('Are you sure you want to log out?'),
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: AppColors.title,
@@ -454,9 +478,9 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
+                        child: Text(
+                          context.l10n.tr('Cancel'),
+                          style: const TextStyle(
                             color: AppColors.primary,
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -493,6 +517,65 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
     );
   }
 
+  Future<void> _showDeleteAccountDialog(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        title: Text(context.l10n.tr('Delete Account')),
+        content: Text(
+          context.l10n.tr(
+            'Your account and personal profile data will be permanently deleted. This action cannot be undone.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.l10n.tr('Cancel')),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFB42318),
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.l10n.tr('Delete Account')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final result = await ref.read(userApiProvider).deleteCurrentUser();
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
+      return;
+    }
+
+    await ref.read(appSessionControllerProvider.notifier).clearLocalSession();
+    if (!context.mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.signIn,
+      (route) => false,
+      arguments: SignInRouteArgs(
+        successMessage: context.l10n.tr('Your account has been deleted.'),
+      ),
+    );
+  }
+
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
@@ -512,7 +595,7 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           title: Text(
             title,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w500,
               color: titleColor,
             ),
@@ -526,6 +609,37 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           child: Divider(color: Color(0xFFF0F0F0), height: 1),
         ),
       ],
+    );
+  }
+}
+
+class _DriverDetailLine extends StatelessWidget {
+  const _DriverDetailLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: '$label: ',
+            style: const TextStyle(fontSize: 14, color: AppColors.subtitle),
+          ),
+          TextSpan(
+            text: value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -605,9 +719,9 @@ class _LogoutButtonState extends State<_LogoutButton> {
                 color: Colors.white,
               ),
             )
-          : const Text(
-              'Log Out',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          : Text(
+              context.l10n.tr('Log Out'),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
     );
   }

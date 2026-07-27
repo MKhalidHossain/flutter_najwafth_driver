@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 
 class OrderItemsCard extends StatelessWidget {
   const OrderItemsCard({super.key, this.itemName = 'Delivery'});
@@ -27,12 +27,12 @@ class OrderItemsCard extends StatelessWidget {
                 size: 22,
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Order Items',
+                  context.l10n.tr('Order Items'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppColors.title,

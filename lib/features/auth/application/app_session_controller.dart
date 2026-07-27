@@ -1,5 +1,6 @@
 import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/auth/data/auth_repository.dart';
+import 'package:flutter_najwafth_driver/features/auth/domain/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final appSessionControllerProvider =
@@ -45,6 +46,13 @@ final class AppSessionState {
   final DriverVehicleType vehicleType;
   final DriverAvatarPreset avatarPreset;
   final bool isLoading;
+
+  bool get hasRequiredDriverDetails =>
+      driverId?.trim().isNotEmpty == true &&
+      entrepreneurStatus?.trim().isNotEmpty == true;
+
+  bool get shouldShowCompleteProfile =>
+      !profileCompleted && !hasRequiredDriverDetails;
 
   AppSessionState copyWith({
     bool? onboardingCompleted,
@@ -156,13 +164,27 @@ final class AppSessionController extends Notifier<AppSessionState> {
     }
 
     final storage = ref.read(keyValueStorageProvider);
+    final profileCompleted = _hasRequiredDriverDetails(auth.user);
     await storage.writeString(_accessTokenKey, auth.accessToken);
     await storage.writeString(_refreshTokenKey, auth.refreshToken);
     await storage.writeBool(_signedInKey, true);
+    await storage.writeBool(_profileCompletedKey, profileCompleted);
     await storage.writeBool(_rememberMeKey, rememberMe);
     await storage.writeString(_emailKey, auth.user.email);
     await storage.writeString(_nameKey, auth.user.fullName);
     await storage.writeString(_phoneKey, auth.user.phone);
+    await _writeOptionalString(storage, _driverIdKey, auth.user.driverId);
+    await _writeOptionalString(
+      storage,
+      _entrepreneurStatusKey,
+      auth.user.entrepreneurStatus,
+    );
+    await _writeOptionalString(
+      storage,
+      _vehiclePlateNumberKey,
+      auth.user.vehiclePlateNumber,
+    );
+    await _writeOptionalString(storage, _vehicleTypeKey, auth.user.vehicleType);
     if (rememberMe) {
       await storage.writeString(_rememberedEmailKey, auth.user.email);
     } else {
@@ -171,11 +193,16 @@ final class AppSessionController extends Notifier<AppSessionState> {
 
     state = state.copyWith(
       isSignedIn: true,
+      profileCompleted: profileCompleted,
       rememberMe: rememberMe,
       rememberedEmail: rememberMe ? auth.user.email : null,
       email: auth.user.email,
       userName: auth.user.fullName,
       phoneNumber: auth.user.phone,
+      driverId: _emptyToNull(auth.user.driverId),
+      entrepreneurStatus: _emptyToNull(auth.user.entrepreneurStatus),
+      vehiclePlateNumber: _emptyToNull(auth.user.vehiclePlateNumber),
+      vehicleType: _readVehicleType(auth.user.vehicleType),
       isLoading: false,
     );
     return null;
@@ -213,18 +240,37 @@ final class AppSessionController extends Notifier<AppSessionState> {
     }
 
     final storage = ref.read(keyValueStorageProvider);
+    final profileCompleted = _hasRequiredDriverDetails(auth.user);
     await storage.writeString(_accessTokenKey, auth.accessToken);
     await storage.writeString(_refreshTokenKey, auth.refreshToken);
     await storage.writeBool(_signedInKey, true);
+    await storage.writeBool(_profileCompletedKey, profileCompleted);
     await storage.writeString(_emailKey, auth.user.email);
     await storage.writeString(_nameKey, auth.user.fullName);
     await storage.writeString(_phoneKey, auth.user.phone);
+    await _writeOptionalString(storage, _driverIdKey, auth.user.driverId);
+    await _writeOptionalString(
+      storage,
+      _entrepreneurStatusKey,
+      auth.user.entrepreneurStatus,
+    );
+    await _writeOptionalString(
+      storage,
+      _vehiclePlateNumberKey,
+      auth.user.vehiclePlateNumber,
+    );
+    await _writeOptionalString(storage, _vehicleTypeKey, auth.user.vehicleType);
 
     state = state.copyWith(
       isSignedIn: true,
+      profileCompleted: profileCompleted,
       email: auth.user.email,
       userName: auth.user.fullName,
       phoneNumber: auth.user.phone,
+      driverId: _emptyToNull(auth.user.driverId),
+      entrepreneurStatus: _emptyToNull(auth.user.entrepreneurStatus),
+      vehiclePlateNumber: _emptyToNull(auth.user.vehiclePlateNumber),
+      vehicleType: _readVehicleType(auth.user.vehicleType),
       isLoading: false,
     );
     return null;
@@ -357,5 +403,29 @@ final class AppSessionController extends Notifier<AppSessionState> {
       (preset) => preset.name == rawValue,
       orElse: () => DriverAvatarPreset.none,
     );
+  }
+
+  Future<void> _writeOptionalString(
+    KeyValueStorage storage,
+    String key,
+    String? value,
+  ) async {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      await storage.remove(key);
+      return;
+    }
+
+    await storage.writeString(key, trimmed);
+  }
+
+  String? _emptyToNull(String? value) {
+    final trimmed = value?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
+  }
+
+  bool _hasRequiredDriverDetails(User user) {
+    return user.driverId?.trim().isNotEmpty == true &&
+        user.entrepreneurStatus?.trim().isNotEmpty == true;
   }
 }

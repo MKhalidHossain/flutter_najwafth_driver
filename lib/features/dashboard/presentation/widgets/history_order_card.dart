@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_najwafth_driver/core/theme/app_theme.dart';
+import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/core/utils/currency_formatter.dart';
 
 class HistoryOrderCard extends StatelessWidget {
@@ -37,7 +37,7 @@ class HistoryOrderCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Order  $orderId',
+                    '${context.l10n.tr('Order')}  $orderId',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -57,9 +57,9 @@ class HistoryOrderCard extends StatelessWidget {
                     color: const Color(0xFFD4EAE0), // Light green background
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Delivered',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.tr('Delivered'),
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF145647), // Dark green text
@@ -69,16 +69,16 @@ class HistoryOrderCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            _buildLocationRow('From:', fromAddress),
+            _buildLocationRow(context.l10n.tr('From:'), fromAddress),
             const SizedBox(height: 12),
-            _buildLocationRow('To:', toAddress),
+            _buildLocationRow(context.l10n.tr('To:'), toAddress),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Total',
-                  style: TextStyle(
+                Text(
+                  context.l10n.tr('Total'),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: AppColors.primary,
