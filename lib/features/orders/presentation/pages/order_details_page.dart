@@ -24,6 +24,11 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
   DriverRequest? _request;
   OrderStatus _currentStatus = OrderStatus.accepted;
 
+  String _formatOrderId(String orderId) {
+    final trimmed = orderId.trim();
+    return trimmed.length > 8 ? trimmed.substring(0, 8) : trimmed;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -163,6 +168,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
     final orderId = request == null
         ? '...'
         : (request.orderId.isNotEmpty ? request.orderId : request.id);
+    final displayOrderId = _formatOrderId(orderId);
     final earnings = request?.price == null
         ? '—'
         : formatCurrency(request!.price!);
@@ -184,7 +190,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${context.l10n.tr('Order')}  $orderId',
+              '${context.l10n.tr('Order')}  $displayOrderId',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -202,7 +208,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
           ],
         ),
       ),
-      body: _buildBody(request, orderId),
+      body: _buildBody(request, displayOrderId),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -231,7 +237,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
     );
   }
 
-  Widget _buildBody(DriverRequest? request, String orderId) {
+  Widget _buildBody(DriverRequest? request, String displayOrderId) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -309,7 +315,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
                 (request.location.isNotEmpty ? request.location : '—'),
             orderDate: dateStr,
             phone: request.phone.isNotEmpty ? request.phone : '—',
-            orderId: orderId,
+            orderId: displayOrderId,
           ),
           LocationInfoCard(
             title: context.l10n.tr('Deliver To'),
@@ -322,7 +328,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
                 (request.location.isNotEmpty ? request.location : '—'),
             orderDate: dateStr,
             phone: request.phone.isNotEmpty ? request.phone : '—',
-            orderId: orderId,
+            orderId: displayOrderId,
           ),
           OrderItemsCard(
             itemName: request.item.isNotEmpty
