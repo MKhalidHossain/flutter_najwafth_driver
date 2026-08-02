@@ -19,6 +19,11 @@ class ActiveOrderCard extends StatelessWidget {
   final String status;
   final VoidCallback? onViewDetails;
 
+  String get _displayOrderId {
+    final trimmed = orderId.trim();
+    return trimmed.length > 8 ? trimmed.substring(0, 8) : trimmed;
+  }
+
   String _statusLabel(BuildContext context) {
     switch (status.toLowerCase()) {
       case 'processing':
@@ -51,7 +56,7 @@ class ActiveOrderCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${context.l10n.tr('Order')}  $orderId',
+                  '${context.l10n.tr('Order')}  $_displayOrderId',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

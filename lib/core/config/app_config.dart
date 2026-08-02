@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 const bool kUseLiveServer = bool.fromEnvironment(
   'USE_LIVE_SERVER',
-  defaultValue: true,
+  defaultValue: false,
 );
 
 const String _liveBaseUrl = 'https://api.booksonwheeels.com';
