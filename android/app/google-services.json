@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "300855511746",
+    "project_id": "books-on-wheels-d198a",
+    "storage_bucket": "books-on-wheels-d198a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300855511746:android:b3e1863e55eb958c0b495b",
+        "android_client_info": {
+          "package_name": "com.khalids.booksonwheels"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQ2brVZfiVhXQAyeosKEM_ApSJGL1g7ws"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300855511746:android:c2b7b36fe6adae340b495b",
+        "android_client_info": {
+          "package_name": "com.najwafth.flutter_najwafth_driver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQ2brVZfiVhXQAyeosKEM_ApSJGL1g7ws"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

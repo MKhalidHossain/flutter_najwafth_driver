@@ -33,6 +33,14 @@ final class UserApi {
     );
   }
 
+  Future<Result<UserProfile>> updateAvailability(bool isOnline) {
+    return _apiClient.patch(
+      '$_basePath/me/availability',
+      data: {'isOnline': isOnline},
+      parser: (data) => UserProfile.fromJson(data['data'] as JsonMap),
+    );
+  }
+
   Future<Result<UserProfile>> changePassword({
     required String currentPassword,
     required String newPassword,

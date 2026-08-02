@@ -56,7 +56,7 @@ class ActiveOrderCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${context.l10n.tr('Order')}  $_displayOrderId',
+                  '${context.l10n.tr('Order')} ORD-$_displayOrderId',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

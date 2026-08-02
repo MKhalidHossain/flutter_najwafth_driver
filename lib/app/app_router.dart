@@ -19,6 +19,8 @@ import 'package:flutter_najwafth_driver/features/profile/presentation/pages/term
 import 'package:flutter_najwafth_driver/features/profile/presentation/pages/choose_language_page.dart';
 import 'package:flutter_najwafth_driver/features/notifications/presentation/pages/notifications_page.dart';
 
+final appNavigatorKey = GlobalKey<NavigatorState>();
+
 final class AppRoutes {
   const AppRoutes._();
 

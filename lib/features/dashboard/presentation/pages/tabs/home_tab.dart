@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
 import 'package:flutter_najwafth_driver/core/core.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_najwafth_driver/core/utils/currency_formatter.dart';
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/widgets/custom_toggle_switch.dart';
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/widgets/request_card.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/data/driver_api.dart';
+import 'package:flutter_najwafth_driver/features/driver_requests/application/driver_request_event.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/domain/driver_request.dart';
 import 'package:flutter_najwafth_driver/features/notifications/data/notification_api.dart';
 import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
@@ -20,7 +23,10 @@ class HomeTab extends ConsumerStatefulWidget {
 
 class _HomeTabState extends ConsumerState<HomeTab> {
   bool _isOnline = false;
+  bool _isTogglingOnline = false;
   bool _isLoading = false;
+  bool _isRefreshing = false;
+  int _availabilityRevision = 0;
   AppFailure? _error;
   UserProfile? _profile;
   int _unreadCount = 0;
@@ -28,18 +34,40 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   List<DriverRequest> _driverRequests = const [];
   final Set<String> _acceptingRequestIds = <String>{};
   final Set<String> _rejectingRequestIds = <String>{};
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _loadHomeData();
+    ref.listenManual(driverRequestEventProvider, (previous, next) {
+      if (next != null && _isOnline) {
+        _loadHomeData(showLoading: false);
+      }
+    });
+    ref.listenManual(appLifecycleProvider, (previous, next) {
+      if (next == AppLifecycleState.resumed) {
+        _loadHomeData(showLoading: false);
+      }
+    });
   }
 
-  Future<void> _loadHomeData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadHomeData({bool showLoading = true}) async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    final availabilityRevision = _availabilityRevision;
+    if (showLoading && mounted) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     final userResult = await ref.read(userApiProvider).getCurrentUser();
     final notificationResult = await ref
@@ -53,6 +81,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       setState(() {
         _error = userFailure;
         _isLoading = false;
+        _isRefreshing = false;
       });
       return;
     }
@@ -72,32 +101,81 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       setState(() {
         _error = requestsFailure ?? assignedRequestsFailure;
         _isLoading = false;
+        _isRefreshing = false;
       });
       return;
     }
 
-    final requests = requestsResult.dataOrNull?.requests ?? const [];
+    final requests = _deduplicateRequests(
+      requestsResult.dataOrNull?.requests ?? const [],
+    );
     final assignedRequests =
         assignedRequestsResult?.dataOrNull?.requests ?? const [];
+    final profile = userResult.dataOrNull;
 
     setState(() {
-      _profile = userResult.dataOrNull;
+      _profile = profile;
+      if (availabilityRevision == _availabilityRevision) {
+        _isOnline = profile?.isOnline ?? false;
+      }
       _unreadCount = notificationResult.dataOrNull ?? 0;
       _allDriverRequests = assignedRequests;
       _driverRequests = requests
           .where((request) => request.status.toLowerCase() == 'pending')
           .toList(growable: false);
       _isLoading = false;
+      _isRefreshing = false;
     });
+    _syncRefreshTimer();
   }
 
   Future<void> _refresh() => _loadHomeData();
 
-  void _setOnline(bool value) {
-    setState(() => _isOnline = value);
-    if (value && _driverRequests.isEmpty && !_isLoading) {
-      _loadHomeData();
+  Future<void> _setOnline(bool value) async {
+    if (_isTogglingOnline || value == _isOnline) return;
+    _availabilityRevision += 1;
+    setState(() => _isTogglingOnline = true);
+
+    final result = await ref.read(userApiProvider).updateAvailability(value);
+    if (!mounted) return;
+
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      setState(() => _isTogglingOnline = false);
+      _showLifecycleMessage(failure.message);
+      return;
     }
+
+    setState(() {
+      _isOnline = result.dataOrNull?.isOnline ?? value;
+      _profile = result.dataOrNull ?? _profile;
+      _isTogglingOnline = false;
+    });
+    _syncRefreshTimer();
+    if (_isOnline) await _loadHomeData(showLoading: false);
+  }
+
+  void _syncRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+    if (!_isOnline) return;
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 20),
+      (_) => _loadHomeData(showLoading: false),
+    );
+  }
+
+  List<DriverRequest> _deduplicateRequests(List<DriverRequest> requests) {
+    final byId = <String, DriverRequest>{};
+    for (final request in requests) {
+      byId[request.id] = request;
+    }
+    final result = byId.values.toList();
+    result.sort(
+      (a, b) => (b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0))
+          .compareTo(a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0)),
+    );
+    return result;
   }
 
   void _openRequestDetails(String driverRequestId) {
@@ -110,36 +188,13 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   }
 
   Future<void> _acceptRequest(String driverRequestId) async {
-    final driverId = _profile?.id;
-    if (driverId == null || driverId.isEmpty) {
-      _showLifecycleMessage(
-        context.l10n.tr('Driver profile is not loaded yet.'),
-      );
-      return;
-    }
     if (_acceptingRequestIds.contains(driverRequestId)) return;
 
     setState(() => _acceptingRequestIds.add(driverRequestId));
 
-    final api = ref.read(driverApiProvider);
-    final assignResult = await api.assignDriverToRequest(
-      driverRequestId: driverRequestId,
-      driverId: driverId,
-    );
-
-    if (!mounted) return;
-
-    final assignFailure = assignResult.failureOrNull;
-    if (assignFailure != null) {
-      setState(() => _acceptingRequestIds.remove(driverRequestId));
-      _showLifecycleMessage(assignFailure.message);
-      return;
-    }
-
-    final statusResult = await api.updateDriverRequestStatus(
-      driverRequestId: driverRequestId,
-      status: 'accepted',
-    );
+    final statusResult = await ref
+        .read(driverApiProvider)
+        .acceptDriverRequest(driverRequestId);
 
     if (!mounted) return;
 
@@ -147,8 +202,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
 
     final statusFailure = statusResult.failureOrNull;
     if (statusFailure != null) {
+      if (statusFailure.statusCode == 409) {
+        _removeRequestFromNewList(driverRequestId);
+      }
       _showLifecycleMessage(statusFailure.message);
-      await _loadHomeData();
+      await _loadHomeData(showLoading: false);
       return;
     }
 
@@ -290,7 +348,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            CustomToggleSwitch(isOnline: _isOnline, onChanged: _setOnline),
+            CustomToggleSwitch(
+              isOnline: _isOnline,
+              isLoading: _isTogglingOnline,
+              onChanged: _setOnline,
+            ),
             const SizedBox(height: 30),
             if (!_isOnline) _buildOfflineView() else _buildOnlineView(),
           ],
@@ -346,7 +408,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         SizedBox(
           width: 200,
           child: FilledButton(
-            onPressed: () => _setOnline(true),
+            onPressed: _isTogglingOnline ? null : () => _setOnline(true),
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(

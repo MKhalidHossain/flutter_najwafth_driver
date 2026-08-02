@@ -6,15 +6,17 @@ class CustomToggleSwitch extends StatelessWidget {
     super.key,
     required this.isOnline,
     required this.onChanged,
+    this.isLoading = false,
   });
 
   final bool isOnline;
   final ValueChanged<bool> onChanged;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onChanged(!isOnline),
+      onTap: isLoading ? null : () => onChanged(!isOnline),
       child: Container(
         height: 56,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -43,38 +45,47 @@ class CustomToggleSwitch extends StatelessWidget {
                 ),
               ),
             ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              width: 60,
-              height: 32,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: isOnline ? AppColors.primary : AppColors.border,
-              ),
-              child: Stack(
-                children: [
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    left: isOnline ? 28 : 2,
-                    top: 2,
-                    child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                      ),
-                      child: Icon(
-                        Icons.power_settings_new_rounded,
-                        size: 18,
-                        color: isOnline ? AppColors.primary : AppColors.border,
+            if (isLoading)
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                width: 60,
+                height: 32,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: isOnline ? AppColors.primary : AppColors.border,
+                ),
+                child: Stack(
+                  children: [
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      left: isOnline ? 28 : 2,
+                      top: 2,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                        ),
+                        child: Icon(
+                          Icons.power_settings_new_rounded,
+                          size: 18,
+                          color: isOnline
+                              ? AppColors.primary
+                              : AppColors.border,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),

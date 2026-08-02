@@ -61,4 +61,20 @@ final class NotificationApi {
       },
     );
   }
+
+  Future<Result<void>> registerDeviceToken(String token) {
+    return _apiClient.post(
+      '$_basePath/device-token',
+      data: {'token': token},
+      parser: (_) {},
+    );
+  }
+
+  Future<Result<void>> removeDeviceToken(String token) {
+    return _apiClient.delete(
+      '$_basePath/device-token',
+      data: {'token': token},
+      parser: (_) {},
+    );
+  }
 }
