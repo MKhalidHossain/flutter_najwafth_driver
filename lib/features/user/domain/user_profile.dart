@@ -9,6 +9,7 @@ final class UserProfile {
     required this.role,
     required this.bio,
     required this.address,
+    required this.isOnline,
     this.gender,
     this.dob,
     this.age,
@@ -26,6 +27,7 @@ final class UserProfile {
   final String role;
   final String bio;
   final String address;
+  final bool isOnline;
   final String? gender;
   final DateTime? dob;
   final int? age;
@@ -46,6 +48,7 @@ final class UserProfile {
       role: json['role'] as String? ?? '',
       bio: json['bio'] as String? ?? '',
       address: json['address'] as String? ?? '',
+      isOnline: json['isOnline'] == true,
       gender: json['gender'] as String?,
       dob: _readDate(json['dob']),
       age: _readIntOrNull(json['age']),

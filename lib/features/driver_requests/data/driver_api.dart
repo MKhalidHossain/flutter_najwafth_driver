@@ -93,6 +93,13 @@ final class DriverApi {
     );
   }
 
+  Future<Result<DriverRequest>> acceptDriverRequest(String driverRequestId) {
+    return _apiClient.patch(
+      '$_basePath/driver-requests/$driverRequestId/accept',
+      parser: (data) => DriverRequest.fromJson(data['data'] as JsonMap),
+    );
+  }
+
   Future<Result<DriverRequest>> updateDriverRequestStatus({
     required String driverRequestId,
     required String status,

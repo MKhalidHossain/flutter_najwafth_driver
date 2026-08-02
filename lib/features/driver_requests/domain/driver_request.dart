@@ -336,6 +336,9 @@ int _readInt(Object? value, {required int fallback}) {
 String _readStatus(JsonMap json) {
   final drStatus = json['status'] as String? ?? 'pending';
 
+  // Completed driver requests represent delivered orders in the driver UI.
+  if (drStatus == 'completed') return 'delivered';
+
   // Only override if the driver request is accepted.
   if (drStatus != 'accepted') return drStatus;
 

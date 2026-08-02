@@ -51,6 +51,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Select a profile photo for your Books on Wheels driver account.</string>
 	<key>UILaunchStoryboardName</key>

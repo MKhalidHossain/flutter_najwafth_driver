@@ -1,4 +1,5 @@
 import 'package:flutter_najwafth_driver/core/core.dart';
+import 'package:flutter_najwafth_driver/core/notifications/push_notification_service.dart';
 import 'package:flutter_najwafth_driver/features/auth/data/auth_repository.dart';
 import 'package:flutter_najwafth_driver/features/auth/domain/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -278,6 +279,7 @@ final class AppSessionController extends Notifier<AppSessionState> {
 
   Future<void> signOut() async {
     try {
+      await ref.read(pushNotificationServiceProvider).unregister();
       await ref.read(authRepositoryProvider).logout();
     } on Object {
       // Local sign-out should still complete if the backend logout request

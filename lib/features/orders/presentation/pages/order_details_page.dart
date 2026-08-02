@@ -190,7 +190,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${context.l10n.tr('Order')}  $displayOrderId',
+              '${context.l10n.tr('Order')}  ORD-$displayOrderId',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
