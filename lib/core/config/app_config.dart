@@ -6,6 +6,7 @@ const bool kUseLiveServer = bool.fromEnvironment(
 );
 
 const String _liveBaseUrl = 'https://api.booksonwheeels.com';
+const int _localPort = 5002;
 const String _apiBaseUrlOverride = String.fromEnvironment('API_BASE_URL');
 
 enum AppEnvironment { development, staging, production }
@@ -44,6 +45,6 @@ String _resolveBaseUrl() {
   if (kUseLiveServer) return _liveBaseUrl;
 
   return defaultTargetPlatform == TargetPlatform.android
-      ? 'http://10.0.2.2:5002'
-      : 'http://localhost:5002';
+      ? 'http://10.0.2.2:$_localPort'
+      : 'http://localhost:$_localPort';
 }

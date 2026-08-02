@@ -9,11 +9,6 @@ import 'package:flutter_najwafth_driver/features/orders/presentation/widgets/ord
 import 'package:flutter_najwafth_driver/features/orders/presentation/widgets/order_status_timeline.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// TODO: GET /api/v1/driver/orders/:orderId/route is needed for a backend-built
-// route with pickup/dropoff coordinates and any route metadata.
-// TODO: Backend should return pickupAddress, pickupLat, pickupLng,
-// deliveryAddress, deliveryLat, and deliveryLng for accurate route mapping.
-
 class OrderDetailsPage extends ConsumerStatefulWidget {
   const OrderDetailsPage({super.key, required this.driverRequestId});
 

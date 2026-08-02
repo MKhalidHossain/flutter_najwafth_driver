@@ -7,11 +7,6 @@ import 'package:flutter_najwafth_driver/features/driver_requests/domain/driver_r
 import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// TODO: GET /api/v1/driver/orders/history?page=1&limit=10 is needed from
-// backend for a server-side filtered, driver-scoped delivery history endpoint.
-// Current backend only has GET /api/v1/driver-request/driver-requests/driver/:driverId,
-// without pagination or delivered lifecycle statuses.
-
 class HistoryTab extends ConsumerStatefulWidget {
   const HistoryTab({super.key});
 
