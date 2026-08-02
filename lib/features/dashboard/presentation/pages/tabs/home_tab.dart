@@ -93,8 +93,6 @@ class _HomeTabState extends ConsumerState<HomeTab> {
 
   Future<void> _refresh() => _loadHomeData();
 
-  // TODO: Replace local online state with PATCH /api/v1/driver/availability
-  // when backend support is available.
   void _setOnline(bool value) {
     setState(() => _isOnline = value);
     if (value && _driverRequests.isEmpty && !_isLoading) {
