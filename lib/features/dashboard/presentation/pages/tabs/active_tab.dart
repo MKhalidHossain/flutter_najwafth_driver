@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_najwafth_driver/app/app_router.dart';
 import 'package:flutter_najwafth_driver/core/core.dart';
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/widgets/active_order_card.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/data/driver_api.dart';
+import 'package:flutter_najwafth_driver/features/driver_requests/application/driver_request_event.dart';
 import 'package:flutter_najwafth_driver/features/driver_requests/domain/driver_request.dart';
 import 'package:flutter_najwafth_driver/features/user/data/user_api.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,18 +26,44 @@ class _ActiveTabState extends ConsumerState<ActiveTab> {
   bool _isLoading = false;
   AppFailure? _error;
   List<DriverRequest> _orders = const [];
+  bool _isRefreshing = false;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _loadActiveOrders();
+    ref.listenManual(driverRequestEventProvider, (previous, next) {
+      if (next != null) {
+        _loadActiveOrders(showLoading: false);
+      }
+    });
+    ref.listenManual(appLifecycleProvider, (previous, next) {
+      if (next == AppLifecycleState.resumed) {
+        _loadActiveOrders(showLoading: false);
+      }
+    });
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => _loadActiveOrders(showLoading: false),
+    );
   }
 
-  Future<void> _loadActiveOrders() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadActiveOrders({bool showLoading = true}) async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    if (showLoading && mounted) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     final profileResult = await ref.read(userApiProvider).getCurrentUser();
 
@@ -45,6 +74,7 @@ class _ActiveTabState extends ConsumerState<ActiveTab> {
       setState(() {
         _error = profileFailure;
         _isLoading = false;
+        _isRefreshing = false;
       });
       return;
     }
@@ -54,6 +84,7 @@ class _ActiveTabState extends ConsumerState<ActiveTab> {
       setState(() {
         _orders = const [];
         _isLoading = false;
+        _isRefreshing = false;
       });
       return;
     }
@@ -69,6 +100,7 @@ class _ActiveTabState extends ConsumerState<ActiveTab> {
       setState(() {
         _error = failure;
         _isLoading = false;
+        _isRefreshing = false;
       });
       return;
     }
@@ -81,6 +113,7 @@ class _ActiveTabState extends ConsumerState<ActiveTab> {
     setState(() {
       _orders = active;
       _isLoading = false;
+      _isRefreshing = false;
     });
   }
 
@@ -209,7 +242,7 @@ class _ActiveTabState extends ConsumerState<ActiveTab> {
         final request = _orders[index];
         final orderId = request.orderId.isNotEmpty
             ? request.orderId
-            : request.id;
+            : context.l10n.tr('Unavailable');
         final fromAddress = request.shopName.isNotEmpty
             ? request.shopName
             : context.l10n.tr('Unknown Shop');
