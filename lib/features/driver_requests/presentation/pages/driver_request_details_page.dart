@@ -87,7 +87,9 @@ final class _DriverRequestDetailsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orderId = request.orderId.isNotEmpty ? request.orderId : request.id;
+    final orderId = request.orderId.isNotEmpty
+        ? request.orderId
+        : context.l10n.tr('Unavailable');
 
     return Container(
       padding: const EdgeInsets.all(18),

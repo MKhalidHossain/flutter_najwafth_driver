@@ -111,6 +111,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     );
     final assignedRequests =
         assignedRequestsResult?.dataOrNull?.requests ?? const [];
+    final hasActiveRequest = assignedRequests.any(
+      (request) => request.status.toLowerCase() == 'accepted',
+    );
     final profile = userResult.dataOrNull;
 
     setState(() {
@@ -120,9 +123,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       }
       _unreadCount = notificationResult.dataOrNull ?? 0;
       _allDriverRequests = assignedRequests;
-      _driverRequests = requests
-          .where((request) => request.status.toLowerCase() == 'pending')
-          .toList(growable: false);
+      _driverRequests = hasActiveRequest
+          ? const []
+          : requests
+                .where((request) => request.status.toLowerCase() == 'pending')
+                .toList(growable: false);
       _isLoading = false;
       _isRefreshing = false;
     });
@@ -160,7 +165,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     _refreshTimer = null;
     if (!_isOnline) return;
     _refreshTimer = Timer.periodic(
-      const Duration(seconds: 20),
+      const Duration(seconds: 3),
       (_) => _loadHomeData(showLoading: false),
     );
   }
@@ -211,7 +216,14 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     }
 
     _removeRequestFromNewList(driverRequestId);
+    ref
+        .read(driverRequestEventProvider.notifier)
+        .emit(
+          type: 'driver_request_accepted',
+          driverRequestId: driverRequestId,
+        );
     _showLifecycleMessage(context.l10n.tr('Request accepted.'));
+    await _loadHomeData(showLoading: false);
   }
 
   Future<void> _rejectRequest(String driverRequestId) async {
@@ -503,7 +515,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   }
 
   Widget _buildRequestCard(DriverRequest request) {
-    final orderId = request.orderId.isNotEmpty ? request.orderId : request.id;
+    final orderId = request.orderId.isNotEmpty
+        ? request.orderId
+        : context.l10n.tr('Unavailable');
     final pickup = request.shopName.isNotEmpty
         ? request.shopName
         : request.location;

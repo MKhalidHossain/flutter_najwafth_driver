@@ -62,7 +62,9 @@ final class PushNotificationService {
 
   void _handleMessage(RemoteMessage message, {bool opened = false}) {
     final type = message.data['type'] ?? '';
-    if (type != 'driver_request_new' && type != 'driver_request_assigned') {
+    if (type != 'driver_request_new' &&
+        type != 'driver_request_assigned' &&
+        type != 'driver_request_unassigned') {
       return;
     }
 
@@ -75,16 +77,7 @@ final class PushNotificationService {
     final navigator = appNavigatorKey.currentState;
     if (navigator == null) return;
 
-    if (type == 'driver_request_assigned' &&
-        requestId != null &&
-        requestId.isNotEmpty) {
-      navigator.pushNamed(
-        AppRoutes.driverRequestDetails,
-        arguments: DriverRequestDetailsRouteArgs(driverRequestId: requestId),
-      );
-    } else {
-      navigator.pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
-    }
+    navigator.pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
   }
 
   Future<void> _registerCurrentToken() async {

@@ -82,7 +82,13 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
     final request = _request;
     if (request == null) return;
 
-    final orderId = request.orderId.isNotEmpty ? request.orderId : request.id;
+    final orderId = request.orderId;
+    if (orderId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.tr('Order not found'))),
+      );
+      return;
+    }
 
     final String nextStatusRaw = switch (_currentStatus) {
       OrderStatus.accepted => 'processing',
@@ -167,7 +173,9 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
     final request = _request;
     final orderId = request == null
         ? '...'
-        : (request.orderId.isNotEmpty ? request.orderId : request.id);
+        : (request.orderId.isNotEmpty
+              ? request.orderId
+              : context.l10n.tr('Unavailable'));
     final displayOrderId = _formatOrderId(orderId);
     final earnings = request?.price == null
         ? '—'

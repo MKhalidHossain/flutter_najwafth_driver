@@ -221,7 +221,7 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
         final request = _orders[index];
         final orderId = request.orderId.isNotEmpty
             ? request.orderId
-            : request.id;
+            : context.l10n.tr('Unavailable');
         final fromAddress = request.shopName.isNotEmpty
             ? request.shopName
             : context.l10n.tr('Unknown Shop');
