@@ -4,15 +4,17 @@ import 'package:flutter_najwafth_driver/features/dashboard/presentation/pages/ta
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/pages/tabs/history_tab.dart';
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/pages/tabs/home_tab.dart';
 import 'package:flutter_najwafth_driver/features/dashboard/presentation/pages/tabs/profile_tab.dart';
+import 'package:flutter_najwafth_driver/features/driver_requests/application/driver_request_event.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DashboardPage extends StatefulWidget {
+class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
 
   @override
-  State<DashboardPage> createState() => _DashboardPageState();
+  ConsumerState<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends ConsumerState<DashboardPage> {
   int _currentIndex = 0;
 
   final List<Widget> _tabs = const [
@@ -21,6 +23,21 @@ class _DashboardPageState extends State<DashboardPage> {
     HistoryTab(),
     ProfileTab(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual(driverRequestEventProvider, (previous, next) {
+      if (next == null || !mounted) return;
+
+      if (next.type == 'driver_request_accepted') {
+        setState(() => _currentIndex = 1);
+      } else if (next.type == 'driver_request_assigned' ||
+          next.type == 'driver_request_new') {
+        setState(() => _currentIndex = 0);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
